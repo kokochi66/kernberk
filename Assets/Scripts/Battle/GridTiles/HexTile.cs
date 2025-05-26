@@ -29,4 +29,16 @@ public class HexTile : MonoBehaviour
         }
     }
 
+
+    public void Highlight(Color color)
+    {
+        GetComponent<SpriteRenderer>().color = color;
+    }
+
+    public void ResetHighlight()
+    {
+        GetComponent<SpriteRenderer>().color = Color.white;
+    }
+
+
 }

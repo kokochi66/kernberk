@@ -7,11 +7,11 @@ public class PlayerUnit : MonoBehaviour
     public string unitName = "플레이어 유닛";
     public UnitStats stats;
 
-    private void Start()
+    private void Awake()
     {
-        // 예시로 초기화
-        stats = new UnitStats(maxHp: 30, atk: 10, def: 3, agi: 5);
+        stats = new UnitStats(maxHp: 30, atk: 3, def: 3, agi: 28);
     }
+
 
     public void ReceiveAttack(int enemyDamage)
     {
@@ -70,4 +70,19 @@ public class PlayerUnit : MonoBehaviour
         SetCurrentTile(targetTile);
         onComplete?.Invoke();
     }
+
+    public IEnumerator FlashRed()
+    {
+        SpriteRenderer sr = GetComponent<SpriteRenderer>();
+
+        for (int i = 0; i < 3; i++)
+        {
+            sr.color = Color.red;
+            yield return new WaitForSeconds(0.1f);
+            sr.color = Color.white;
+            yield return new WaitForSeconds(0.1f);
+        }
+    }
+
+
 }
