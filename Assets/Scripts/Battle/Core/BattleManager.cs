@@ -21,20 +21,23 @@ namespace Battle.Core
 
         [SerializeField] public GameObject playerInfoPrefab;
         [SerializeField] public Transform playerInfoPanel;
-        
+
 
         private List<GameObject> spawnedTurnIcons = new List<GameObject>();
 
         public bool IsPlayerTurn { get; private set; } = true;
-    
+
         private enum TurnState { PlayerTurn, EnemyTurn }
         private TurnState currentTurn = TurnState.PlayerTurn;
         private Queue<UnitActionData> actionQueue = new Queue<UnitActionData>();
         private UnitActionData currentAction;
         private bool isProcessingTurn = false;
         private int currentTurnNo = 0;
-        private List<HexTile> highlightedPreviewTiles = new List<HexTile>();
+        private List<HexTile> movePreviewTiles = new List<HexTile>();
+        private List<HexTile> attackPreviewTiles = new List<HexTile>();
+
         private UIPlayerInfo uiPlayerInfo;
+        private EnemyUnit selectedEnemy;
         public PlayerUnit SelectedPlayer => playerUnits[selectedPlayerIndex];
 
         private void Awake()
@@ -95,9 +98,9 @@ namespace Battle.Core
             selectedPlayerIndex = index;
             Debug.Log($"[BattleManager] 유닛 선택됨: {SelectedPlayer.unitName} (Index: {index})");
 
-            // UI 표시, 이동 타일 하이라이트 등도 여기서 처리 가능
+            // 이동 가능한 타일 하이라이트
+            HighlightMoveableTiles(SelectedPlayer);
         }
-
 
 
         public void OnTileClicked(HexTile tile)
@@ -113,7 +116,8 @@ namespace Battle.Core
             }
 
             // 💡 하이라이트 제거
-            ClearPreviewTiles();
+            ClearAllPreviewTiles();
+            DeselectEnemy(); // ✅ 공격 후 선택 해제
 
             SelectedPlayer.MoveTo(tile, () =>
             {
@@ -126,15 +130,18 @@ namespace Battle.Core
         {
             if (!IsPlayerTurn) return;
 
-            // 💡 하이라이트 제거
-            ClearPreviewTiles();
+            // 공격 실행
+            if (currentEnemy != null)
+            {
+                int atk = SelectedPlayer.stats.Attack;
+                currentEnemy.ReceiveAttack(atk);
+            }
 
-            int atk = SelectedPlayer.stats.Attack;
-            currentEnemy.ReceiveAttack(atk);
-
+            DeselectEnemy(); // ✅ 공격 후 선택 해제
             IsPlayerTurn = false;
             StartCoroutine(ProcessNextAction());
         }
+
 
         public void GenerateStepQueue()
         {
@@ -189,6 +196,9 @@ namespace Battle.Core
                 yield break;
             }
 
+
+            // ClearAllPreviewTiles();
+            // DeselectEnemy(); // ✅ 새 턴 시작 전 항상 초기화
             RemoveLeftmostTurnIcon(currentTurnNo == 1);
             isProcessingTurn = true;
             currentTurnNo++;
@@ -360,31 +370,18 @@ namespace Battle.Core
 
         public void PreviewUnitActionRange(UnitActionData action)
         {
-            // 기존 하이라이트 제거
-            foreach (var tile in highlightedPreviewTiles)
-                tile.ResetHighlight();
-            highlightedPreviewTiles.Clear();
+            ClearAttackTiles();
 
-            // 공격 범위가 있는 경우만 표시
             if (action != null && action.attackTiles != null)
             {
                 foreach (var tile in action.attackTiles)
                 {
                     tile.Highlight(Color.red);
-                    highlightedPreviewTiles.Add(tile);
+                    attackPreviewTiles.Add(tile);
                 }
-
-                Debug.Log($"🔍 유닛 클릭: {(action.isAlly ? "아군" : "적")} / 민첩도 {action.effectiveAgility}");
             }
         }
 
-        private void ClearPreviewTiles()
-        {
-            foreach (var tile in highlightedPreviewTiles)
-                tile.ResetHighlight();
-
-            highlightedPreviewTiles.Clear();
-        }
 
         private bool IsAdjacent(HexTile from, HexTile to)
         {
@@ -405,8 +402,82 @@ namespace Battle.Core
             return false;
         }
 
+        private void HighlightMoveableTiles(PlayerUnit unit)
+        {
+            ClearMoveTiles();
 
+            foreach (HexTile tile in allTiles)
+            {
+                if (!tile.IsOccupied() && IsAdjacent(unit.CurrentTile, tile))
+                {
+                    tile.Highlight(new Color(0.5f, 0.8f, 1f)); // 연파랑
+                    movePreviewTiles.Add(tile);
+                }
+            }
+        }
 
+        private void ClearMoveTiles()
+        {
+            foreach (var tile in movePreviewTiles)
+                tile.ResetHighlight();
+            movePreviewTiles.Clear();
+        }
+
+        private void ClearAttackTiles()
+        {
+            foreach (var tile in attackPreviewTiles)
+                tile.ResetHighlight();
+            attackPreviewTiles.Clear();
+        }
+
+        private void ClearAllPreviewTiles()
+        {
+            ClearMoveTiles();
+            ClearAttackTiles();
+        }
+
+        public void OnEnemyIconClicked(UnitActionData action)
+        {
+            ClearAttackTiles();
+            PreviewUnitActionRange(action);
+        }
+
+        public void OnEnemyIconUnclicked()
+        {
+            ClearAttackTiles();
+            HighlightMoveableTiles(SelectedPlayer);
+        }
+
+        public void OnEnemyUnitClicked(EnemyUnit enemy)
+        {
+            // 이미 선택된 적을 다시 클릭하면 해제
+            if (selectedEnemy == enemy)
+            {
+                DeselectEnemy();
+                return;
+            }
+
+            // 기존 적 선택 해제
+            if (selectedEnemy != null)
+            {
+                selectedEnemy.ShowSelected(false);
+            }
+
+            selectedEnemy = enemy;
+            selectedEnemy.ShowSelected(true);
+
+            // 👉 필요 시 범위 표시 등 추가
+            // PreviewUnitActionRange(...)
+        }
+
+        private void DeselectEnemy()
+        {
+            if (selectedEnemy != null)
+            {
+                selectedEnemy.ShowSelected(false);
+                selectedEnemy = null;
+            }
+        }
 
 
     }

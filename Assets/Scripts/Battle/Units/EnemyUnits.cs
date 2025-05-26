@@ -5,6 +5,7 @@ using System.Linq;
 using System.Collections.Generic;
 using Battle.Units;
 using Battle.UIEvents;
+using Battle.Core;
 
 public class EnemyUnit : MonoBehaviour
 {
@@ -13,15 +14,27 @@ public class EnemyUnit : MonoBehaviour
     public GameObject enemyInfoPanel;
     private UIEnemyInfo uiInstance;
     private SpriteRenderer spriteRenderer;
+    public GameObject selectionOutline;
+    public bool isClicked = false;
 
     private void Start()
     {
-        stats = new UnitStats(20, 8, 2, 25); // 임시 값
+        stats = new UnitStats(20, 8, 2, 25);
         spriteRenderer = GetComponent<SpriteRenderer>();
 
         GameObject uiGO = Instantiate(uiPrefab, enemyInfoPanel.transform);
         uiInstance = uiGO.GetComponent<UIEnemyInfo>();
-        uiInstance.Bind(stats, this.transform, uiGO); // 체력 바인딩 및 추적할 타겟 설정
+        uiInstance.Bind(stats, this.transform, uiGO);
+
+        // ✅ 테두리는 기본적으로 꺼놓기
+        if (selectionOutline != null)
+            selectionOutline.SetActive(false);
+    }
+
+    public void ShowSelected(bool show)
+    {
+        if (selectionOutline != null)
+            selectionOutline.SetActive(show);
     }
 
     public void ReceiveAttack(int attackValue)
@@ -37,7 +50,7 @@ public class EnemyUnit : MonoBehaviour
         if (stats.CurrentHP <= 0)
         {
             Die();
-            
+
         }
     }
 
@@ -73,6 +86,15 @@ public class EnemyUnit : MonoBehaviour
         }
 
         return result;
+    }
+
+    private void OnMouseDown()
+    {
+        if (!BattleManager.Instance.IsPlayerTurn) return;
+
+        Debug.Log("🖱️ 적 유닛 클릭됨");
+
+        BattleManager.Instance.OnEnemyUnitClicked(this);
     }
 
 
