@@ -1,5 +1,7 @@
 using UnityEngine;
 using Battle.Units;
+using Battle.UIEvents;
+using Battle.Data;
 using System.Collections.Generic;
 
 namespace Battle.Core
@@ -7,18 +9,7 @@ namespace Battle.Core
     public class BattleManager : MonoBehaviour
     {
         public static BattleManager Instance;
-
-        [Header("Unit Prefabs")]
-        [SerializeField] private GameObject playerInfoPrefab;
-
-        [Header("UI Panels")]
-        [SerializeField] private Transform playerInfoPanel;
-        [SerializeField] private Transform skillPanelParent;
-
-        [Header("Icons")]
-        [SerializeField] private Sprite attackIcon;
-        [SerializeField] private Sprite skill1Icon;
-        [SerializeField] private Sprite skill2Icon;
+        public static BattleSetupData battleSetupData;
 
         private void Awake()
         {
@@ -38,8 +29,7 @@ namespace Battle.Core
         private void InitializeBattle()
         {
             // 초기 유닛 배치 및 UI 세팅
-            UnitManager.Instance.InitializeUnits();
-            BattleFlowManager.Instance.StartBattle();
+            BattleFlowManager.Instance.StartBattle(battleSetupData);
         }
 
         public void OnTileClicked(HexTile tile)
@@ -47,54 +37,44 @@ namespace Battle.Core
             if (!TurnManager.Instance.currentAction.isAlly) return;
             if (!UnitManager.Instance.CanMoveTo(tile)) return;
 
-            UISelector.Instance.ClearAll();
+            UISelector.Instance.DeselectAll();
             UnitManager.Instance.MoveSelectedPlayerTo(tile);
         }
 
         public void OnClickAttack()
         {
-            if (!TurnManager.Instance..currentAction.isAlly()) return;
+            if (!TurnManager.Instance.currentAction.isAlly) return;
 
-            var target = UISelector.Instance.SelectedEnemy;
+            EnemyUnit target = UISelector.Instance.selectedEnemyUnit;
             if (target == null) return;
 
             SkillManager.Instance.UseSelectedSkillOn(target);
-            UISelector.Instance.ClearAll();
+            UISelector.Instance.DeselectAll();
             TurnManager.Instance.EndCurrentTurn();
         }
 
         public void OnEnemyUnitClicked(EnemyUnit enemy)
         {
-            if (!TurnManager.Instance..currentAction.isAlly()) return;
+            if (!TurnManager.Instance.currentAction.isAlly) return;
 
             if (UISelector.Instance.IsSelected(enemy))
             {
-                UISelector.Instance.Deselect(enemy);
+                UISelector.Instance.DeselectEnemy();
             }
             else
             {
-                UISelector.Instance.SelectEnemy(enemy);
+                UISelector.Instance.Select(enemy);
             }
         }
 
         public void OnPlayerIconClicked(PlayerUnit unit)
         {
-            UnitManager.Instance.SelectPlayerUnit(unit);
+            UnitManager.Instance.SelectPlayer(unit);
         }
 
-        public void OnSkillSlotClicked(int skillIndex)
+        public void OnSkillSlotClicked(UnitSkill skill)
         {
-            SkillManager.Instance.SelectSkill(skillIndex);
-        }
-
-        public void OnEnemyIconClicked(UnitActionData enemyAction)
-        {
-            UISelector.Instance.PreviewEnemyAttack(enemyAction);
-        }
-
-        public void OnEnemyIconUnclicked()
-        {
-            UISelector.Instance.ClearEnemyPreview();
+            SkillManager.Instance.SelectSkill(skill);
         }
     }
 }

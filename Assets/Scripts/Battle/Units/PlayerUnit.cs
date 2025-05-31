@@ -4,6 +4,7 @@ using System.Collections;
 
 public class PlayerUnit : BaseUnit
 {
+    public GameObject infoUIPrefab;
 
     private void Awake()
     {

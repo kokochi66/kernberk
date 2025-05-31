@@ -9,6 +9,8 @@ namespace Battle.Core
     public class SkillManager : MonoBehaviour
     {
         public static SkillManager Instance;
+        private UnitSkill selectedSkill;
+
 
         private void Awake()
         {
@@ -20,28 +22,32 @@ namespace Battle.Core
             Instance = this;
         }
 
-        /// <summary>
-        /// 스킬 사용을 실행한다. 이 메서드는 연출 포함 데미지 적용 등을 모두 처리한다.
-        /// </summary>
-        /// <param name="skillIndex">선택된 스킬 인덱스</param>
-        /// <param name="attacker">공격하는 유닛</param>
-        /// <param name="target">공격 대상 유닛</param>
-        public void ExecuteSkill(int skillIndex, BaseUnit attacker, BaseUnit target)
+        public void SelectSkill(UnitSkill skill)
         {
-            if (attacker == null || target == null)
+            selectedSkill = skill;
+            Debug.Log($"[SkillManager] 스킬 선택됨: {skill.skillName}");
+        }
+
+
+        /// <summary>
+        /// 선택된 스킬을 사용하여 대상 유닛에게 연출과 함께 데미지를 가합니다.
+        /// </summary>
+        /// <param name="skill">사용할 스킬</param>
+        /// <param name="attacker">공격 유닛</param>
+        /// <param name="target">피격 유닛</param>
+        public void ExecuteSkill(UnitSkill skill, BaseUnit attacker, BaseUnit target)
+        {
+            if (attacker == null || target == null || skill == null)
             {
-                Debug.LogWarning("[SkillManager] ❌ 잘못된 스킬 대상");
+                Debug.LogWarning("[SkillManager] ❌ 잘못된 스킬 또는 유닛 정보");
                 return;
             }
 
-            Debug.Log($"[SkillManager] ✨ 스킬 실행: {attacker.unitName} → {target.unitName}, Index: {skillIndex}");
+            Debug.Log($"[SkillManager] ✨ 스킬 실행: {attacker.unitName} → {target.unitName} / {skill.skillName}");
 
-            // 간단한 데미지 공식 예시
-            int damage = GetSkillDamage(skillIndex);
-
-            // 연출 시작
-            StartCoroutine(PlaySkillRoutine(attacker, target, damage));
+            StartCoroutine(PlaySkillRoutine(skill, target));
         }
+
 
         private int GetSkillDamage(int index)
         {
@@ -54,20 +60,39 @@ namespace Battle.Core
             }
         }
 
-        private IEnumerator PlaySkillRoutine(BaseUnit attacker, BaseUnit target, int damage)
+        private IEnumerator PlaySkillRoutine(UnitSkill skill, BaseUnit target)
         {
-            // (1) 이펙트 재생 또는 애니메이션 등
             Debug.Log("[SkillManager] 🔥 스킬 이펙트 연출 시작");
             yield return new WaitForSeconds(0.3f);
 
-            // (2) 데미지 적용
-            target.ReceiveAttack(damage);
+            target.ReceiveAttack(skill.damage);
 
-            // (3) 후처리
             Debug.Log("[SkillManager] ✅ 스킬 적용 완료");
 
-            // (4) 다음 턴으로 넘기기 (BattleManager 호출)
             TurnManager.Instance.EndCurrentTurn();
+
+            selectedSkill = null;
         }
+
+
+        public void UseSelectedSkillOn(BaseUnit target)
+        {
+            if (selectedSkill == null)
+            {
+                Debug.LogWarning("[SkillManager] 스킬이 선택되지 않았습니다.");
+                return;
+            }
+
+            if (target == null || target.stats.IsDead)
+            {
+                Debug.LogWarning("[SkillManager] 잘못된 대상입니다.");
+                return;
+            }
+
+            Debug.Log($"[SkillManager] {selectedSkill.skillName} 사용됨 → 대상: {target.unitName}, 피해: {selectedSkill.damage}");
+
+            StartCoroutine(PlaySkillRoutine(selectedSkill, target));
+        }
+
     }
 }

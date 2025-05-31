@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using Battle.Data;
 
 namespace Battle.Core
 {
@@ -29,7 +30,7 @@ namespace Battle.Core
         /// <summary>
         /// 전투를 시작하는 진입점입니다.
         /// </summary>
-        public void StartBattle()
+        public void StartBattle(BattleSetupData setupData)
         {
             isBattleActive = true;
             Debug.Log("⚔️ 전투 시작!");
@@ -37,9 +38,9 @@ namespace Battle.Core
             // 전투 준비 완료 시 스텝 시작
             TurnManager.Instance.OnStepEnded += HandleStepEnded;
             TurnManager.Instance.OnTurnStarted += HandleTurnStarted;
-
-            UnitManager.Instance.InitializeUnits();
             TurnManager.Instance.StartNewStep();
+
+            UnitManager.Instance.InitializeUnits(setupData);
         }
 
         /// <summary>
@@ -65,7 +66,7 @@ namespace Battle.Core
             }
             else
             {
-                StartCoroutine(UnitManager.Instance.ExecuteEnemyTurn(action.unit));
+                UnitManager.Instance.ExecuteEnemyTurn(action);
             }
         }
 

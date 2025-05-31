@@ -1,6 +1,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Battle.Units;
+using Battle.UIEvents;
+using Battle.Data;
+using System.Linq;
 
 namespace Battle.Core
 {
@@ -10,6 +13,7 @@ namespace Battle.Core
 
         private List<PlayerUnit> playerUnits = new List<PlayerUnit>();
         private List<EnemyUnit> enemyUnits = new List<EnemyUnit>();
+        private List<HexTile> allTiles = new List<HexTile>();
 
         public IReadOnlyList<PlayerUnit> PlayerUnits => playerUnits;
         public IReadOnlyList<EnemyUnit> EnemyUnits => enemyUnits;
@@ -57,6 +61,10 @@ namespace Battle.Core
             return playerUnits.Count == 0 || enemyUnits.Count == 0;
         }
 
+        public bool AllEnemiesDefeated() => enemyUnits.All(e => e.stats.IsDead);
+
+        public bool AllPlayersDefeated() => playerUnits.All(p => p.stats.IsDead);
+
         /// <summary>
         /// 현재 살아 있는 플레이어 유닛 목록 반환
         /// </summary>
@@ -87,35 +95,58 @@ namespace Battle.Core
             return null;
         }
 
-        public void InitializeUnits()
+        public void InitializeUnits(BattleSetupData battleSetupData)
         {
             Debug.Log("[UnitManager] 유닛 초기화 시작");
 
-            Vector2Int[] spawnPositions = new Vector2Int[]
-            {
-        new(2, 1), new(2, 3), new(4, 1), new(4, 3)
-            };
+            // 내부 리스트에 등록
+            RegisterPlayerUnits(battleSetupData.PlayerUnits);
+            RegisterEnemyUnits(battleSetupData.EnemyUnits);
 
-            for (int i = 0; i < spawnPositions.Length && i < playerUnits.Count; i++)
+            var allTiles = TileManager.Instance.GetAllTiles();
+
+            // ▶ 아군 배치
+            for (int i = 0; i < battleSetupData.PlayerUnits.Count; i++)
             {
-                Vector2Int pos = spawnPositions[i];
-                HexTile tile = allTiles.FirstOrDefault(t => t.tileX == pos.x && t.tileY == pos.y);
+                var unit = battleSetupData.PlayerUnits[i];
+                Vector2Int spawnPos = battleSetupData.PlayerSpawnPositions[i];
+                HexTile tile = allTiles.FirstOrDefault(t => t.tileX == spawnPos.x && t.tileY == spawnPos.y);
+
                 if (tile != null)
                 {
-                    PlayerUnit unit = playerUnits[i];
                     unit.SetCurrentTile(tile);
 
-                    GameObject uiObj = Instantiate(playerInfoPrefab, playerInfoPanel);
+                    // UI 생성
+                    GameObject uiObj = GameObject.Instantiate(battleSetupData.PlayerInfoPrefab, battleSetupData.PlayerInfoPanel);
                     var uiPlayerInfo = uiObj.GetComponent<UIPlayerInfo>();
                     uiPlayerInfo.Init(unit.stats);
 
                     RectTransform rt = uiObj.GetComponent<RectTransform>();
                     rt.anchoredPosition = new Vector2(-290f + (i * 180f), -45f);
                 }
+                else
+                {
+                    Debug.LogWarning($"❌ [UnitManager] 유효한 스폰 타일이 없습니다. ({spawnPos.x}, {spawnPos.y})");
+                }
+            }
+
+            // ▶ 적군 배치
+            for (int i = 0; i < battleSetupData.EnemyUnits.Count; i++)
+            {
+                var unit = battleSetupData.EnemyUnits[i];
+                Vector2Int spawnPos = battleSetupData.EnemySpawnPositions[i];
+                HexTile tile = allTiles.FirstOrDefault(t => t.tileX == spawnPos.x && t.tileY == spawnPos.y);
+
+                if (tile != null)
+                {
+                    unit.SetCurrentTile(tile);
+                }
             }
 
             Debug.Log("[UnitManager] 유닛 초기화 완료");
         }
+
+
 
         public List<UnitActionData> GenerateActionQueue()
         {
@@ -133,6 +164,96 @@ namespace Battle.Core
             return actions;
         }
 
+        ///
+        /// 현재 선택된 플레이어 유닛이 해당 타일로 이동 가능한지 확인
+        ///
+        public bool CanMoveTo(HexTile tile)
+        {
+            PlayerUnit selected = GetSelectedPlayer();
+            if (selected == null || tile.IsOccupied()) return false;
+
+            return IsAdjacent(selected.CurrentTile, tile);
+        }
+
+        ///
+        /// 현재 선택된 플레이어 유닛을 반환
+        ///
+        public PlayerUnit GetSelectedPlayer()
+        {
+            // 간단히 첫 번째 살아있는 유닛을 선택된 유닛으로 간주
+            return playerUnits.FirstOrDefault(p => !p.stats.IsDead);
+        }
+
+        public void MoveSelectedPlayerTo(HexTile tile)
+        {
+            var selectedPlayer = playerUnits.FirstOrDefault(p => p != null && !p.stats.IsDead && p.CurrentTile != null);
+            if (selectedPlayer != null)
+            {
+                selectedPlayer.MoveTo(tile, () =>
+                {
+                    TurnManager.Instance.EndCurrentTurn();
+                });
+            }
+        }
+
+        public void SelectPlayer(BaseUnit unit)
+        {
+            if (unit == null)
+            {
+                Debug.LogWarning("[UnitManager] null 유닛이 선택 시도됨");
+                return;
+            }
+
+            if (!playerUnits.Contains(unit))
+            {
+                Debug.LogWarning("[UnitManager] 유닛이 플레이어 목록에 없음");
+                return;
+            }
+
+            Debug.Log($"[UnitManager] 유닛 선택: {unit.unitName}");
+            // 선택된 유닛 관련 상태 저장 또는 UI 업데이트 추가 가능
+        }
+
+
+        public void ExecuteEnemyTurn(UnitActionData action)
+        {
+            if (action.unit.stats.IsDead) return;
+
+            var attackTiles = action.attackTiles;
+
+            foreach (var tile in attackTiles)
+                tile.Highlight(Color.red);
+
+            foreach (var player in playerUnits)
+            {
+                if (!player.stats.IsDead && attackTiles.Contains(player.CurrentTile))
+                {
+                    player.ReceiveAttack(action.unit.stats.Attack);
+                }
+            }
+
+            foreach (var tile in attackTiles)
+                tile.ResetHighlight();
+        }
+
+
+        private bool IsAdjacent(HexTile from, HexTile to)
+        {
+            int dx = to.tileX - from.tileX;
+            int dy = to.tileY - from.tileY;
+
+            (int dx, int dy)[] offsets = (from.tileX % 2 == 0)
+                ? new (int, int)[] { (-1, 0), (-1, 1), (0, -1), (0, 1), (1, 0), (1, 1) }
+                : new (int, int)[] { (-1, -1), (-1, 0), (0, -1), (0, 1), (1, -1), (1, 0) };
+
+            foreach (var offset in offsets)
+            {
+                if (dx == offset.dx && dy == offset.dy)
+                    return true;
+            }
+
+            return false;
+        }
 
     }
 }

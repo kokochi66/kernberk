@@ -11,18 +11,18 @@ namespace Battle.UIEvents
 
         public void OnPointerClick(PointerEventData eventData)
         {
-            if (!this.actionData.isAlly && !this.isClicked)
+            if (!actionData.isAlly)
             {
-                Debug.Log("🖱️ UI 아이콘 클릭됨!");
-                BattleManager.Instance.OnEnemyIconClicked(actionData);
-                this.isClicked = true;
+                if (UISelector.Instance.IsSelected(actionData))
+                {
+                    UISelector.Instance.DeselectAction();
+                }
+                else
+                {
+                    UISelector.Instance.Select(actionData); // 또는 EnemyAction
+                }
             }
-            else if (this.isClicked)
-            {
-                BattleManager.Instance.OnEnemyIconUnclicked();
-                this.isClicked = false;
-            }
-
         }
+
     }
 }
