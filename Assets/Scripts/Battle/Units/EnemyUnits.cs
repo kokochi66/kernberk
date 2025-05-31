@@ -3,13 +3,11 @@ using System.Collections;
 using Battle.Units;
 using System.Linq;
 using System.Collections.Generic;
-using Battle.Units;
 using Battle.UIEvents;
 using Battle.Core;
 
-public class EnemyUnit : MonoBehaviour
+public class EnemyUnit : BaseUnit
 {
-    public UnitStats stats;
     public GameObject uiPrefab; // UIEnemyInfo 프리팹 (Canvas 하위에 붙을 예정)
     public GameObject enemyInfoPanel;
     private UIEnemyInfo uiInstance;
@@ -37,7 +35,7 @@ public class EnemyUnit : MonoBehaviour
             selectionOutline.SetActive(show);
     }
 
-    public void ReceiveAttack(int attackValue)
+    public override void ReceiveAttack(int attackValue)
     {
         int damage = Mathf.Max(1, attackValue - stats.Defense);
         stats.CurrentHP -= damage;
@@ -90,12 +88,24 @@ public class EnemyUnit : MonoBehaviour
 
     private void OnMouseDown()
     {
-        if (!BattleManager.Instance.IsPlayerTurn) return;
+        if (!TurnManager.Instance.currentAction.isAlly) return;
 
         Debug.Log("🖱️ 적 유닛 클릭됨");
 
         BattleManager.Instance.OnEnemyUnitClicked(this);
     }
 
+    public override IEnumerator FlashRed()
+    {
+        SpriteRenderer sr = GetComponent<SpriteRenderer>();
+
+        for (int i = 0; i < 3; i++)
+        {
+            sr.color = Color.red;
+            yield return new WaitForSeconds(0.1f);
+            sr.color = Color.white;
+            yield return new WaitForSeconds(0.1f);
+        }
+    }
 
 }

@@ -2,10 +2,8 @@ using UnityEngine;
 using Battle.Units;
 using System.Collections;
 
-public class PlayerUnit : MonoBehaviour
+public class PlayerUnit : BaseUnit
 {
-    public string unitName = "플레이어 유닛";
-    public UnitStats stats;
 
     private void Awake()
     {
@@ -13,7 +11,7 @@ public class PlayerUnit : MonoBehaviour
     }
 
 
-    public void ReceiveAttack(int enemyDamage)
+    public override void ReceiveAttack(int enemyDamage)
     {
         stats.TakeDamage(enemyDamage);
 
@@ -24,13 +22,7 @@ public class PlayerUnit : MonoBehaviour
         }
     }
 
-    public HexTile CurrentTile
-    {
-        get;
-        private set;
-    }
-
-    public void SetCurrentTile(HexTile tile)
+    public override void SetCurrentTile(HexTile tile)
     {
         if (CurrentTile != null)
             CurrentTile.SetOccupied(false);
@@ -71,7 +63,7 @@ public class PlayerUnit : MonoBehaviour
         onComplete?.Invoke();
     }
 
-    public IEnumerator FlashRed()
+    public override IEnumerator FlashRed()
     {
         SpriteRenderer sr = GetComponent<SpriteRenderer>();
 

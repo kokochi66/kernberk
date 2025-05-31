@@ -5586,6 +5586,7 @@ GameObject:
   - component: {fileID: 939765608}
   - component: {fileID: 939765610}
   - component: {fileID: 939765609}
+  - component: {fileID: 939765611}
   m_Layer: 5
   m_Name: PlayerSkillInfoPanel
   m_TagString: Untagged
@@ -5650,6 +5651,32 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 939765607}
   m_CullTransparentMesh: 1
+--- !u!114 &939765611
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 939765607}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30649d3a9faa99c48a7b1166b86bf2a0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Padding:
+    m_Left: 0
+    m_Right: 0
+    m_Top: 0
+    m_Bottom: 50
+  m_ChildAlignment: 4
+  m_Spacing: 0
+  m_ChildForceExpandWidth: 1
+  m_ChildForceExpandHeight: 1
+  m_ChildControlWidth: 0
+  m_ChildControlHeight: 0
+  m_ChildScaleWidth: 0
+  m_ChildScaleHeight: 0
+  m_ReverseArrangement: 0
 --- !u!1 &1035092761
 GameObject:
   m_ObjectHideFlags: 0
@@ -9262,6 +9289,11 @@ MonoBehaviour:
   turnInfoPrefabEnemy: {fileID: 6338845096965369474, guid: 4bafe1b026c5b43459e86ecfc957d733, type: 3}
   playerInfoPrefab: {fileID: 1747101503102441046, guid: ef8409e5a7c76454bbc02f0a7ada2813, type: 3}
   playerInfoPanel: {fileID: 817283187}
+  skillSlotPrefab: {fileID: 9103151420884330250, guid: d089f9766e876484faf6bd5bbffb335d, type: 3}
+  skillPanelParent: {fileID: 939765608}
+  attackIcon: {fileID: 21300000, guid: b48aed234e790e6478f14248fe8ae096, type: 3}
+  skill1Icon: {fileID: 21300000, guid: 4ab697554e123fb46998597b30f66353, type: 3}
+  skill2Icon: {fileID: 21300000, guid: cd8ac29caecd5cd4ba226ceea681d8ba, type: 3}
 --- !u!1 &1660508864
 GameObject:
   m_ObjectHideFlags: 0
