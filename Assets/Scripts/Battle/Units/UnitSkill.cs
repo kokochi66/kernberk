@@ -1,7 +1,8 @@
 using UnityEngine;
 using Battle.Units;
 using System.Collections;
-public class UnitSkill
+
+public class UnitSkill : MonoBehaviour
 {
     public string skillName;      // 스킬 이름
     public string description;    // 스킬 설명

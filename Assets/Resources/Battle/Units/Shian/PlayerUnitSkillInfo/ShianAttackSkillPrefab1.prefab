@@ -289,7 +289,7 @@ GameObject:
   - component: {fileID: -3241373597159501048}
   - component: {fileID: 8634651053508015954}
   m_Layer: 5
-  m_Name: SkillSlot
+  m_Name: ShianAttackSkillPrefab1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

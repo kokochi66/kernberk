@@ -13,13 +13,13 @@ namespace Battle.UIEvents
         {
             if (!actionData.isAlly)
             {
-                if (UISelector.Instance.IsSelected(actionData))
+                if (UISelectorManager.Instance.IsSelected(actionData))
                 {
-                    UISelector.Instance.DeselectAction();
+                    UISelectorManager.Instance.DeselectAction();
                 }
                 else
                 {
-                    UISelector.Instance.Select(actionData); // 또는 EnemyAction
+                    UISelectorManager.Instance.Select(actionData); // 또는 EnemyAction
                 }
             }
         }

@@ -1,10 +1,22 @@
 using UnityEngine;
 using Battle.Units;
+using System.Linq;
 using System.Collections;
+using System.Collections.Generic;
+using Battle.Data;
 
 public class PlayerUnit : BaseUnit
 {
     public GameObject infoUIPrefab;
+    public GameObject turnIconPrefab;         // 턴 순서 아이콘
+    public List<UISkillSlot> skills = new();
+
+
+    public void Init(PlayerUnitData playerUnitData)
+    {
+        this.unitName = playerUnitData.unitName;
+        this.stats = playerUnitData.stats;
+    }
 
     private void Awake()
     {

@@ -9,9 +9,9 @@ namespace Battle.UIEvents
     /// 현재 선택된 오브젝트들의 활성/비활성 상태를 관리하고,
     /// 타입에 따라 적절한 동작을 트리거할 수 있게 합니다.
     /// 
-    public class UISelector : MonoBehaviour
+    public class UISelectorManager : MonoBehaviour
     {
-        public static UISelector Instance;
+        public static UISelectorManager Instance;
 
         public UnitActionData selectedActionData { get; private set; }
         public PlayerUnit selectedPlayerUnit { get; private set; }

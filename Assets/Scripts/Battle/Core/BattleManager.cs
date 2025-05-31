@@ -9,7 +9,8 @@ namespace Battle.Core
     public class BattleManager : MonoBehaviour
     {
         public static BattleManager Instance;
-        public static BattleSetupData battleSetupData;
+
+        public BattleSetupData battleSetupData;
 
         private void Awake()
         {
@@ -37,7 +38,7 @@ namespace Battle.Core
             if (!TurnManager.Instance.currentAction.isAlly) return;
             if (!UnitManager.Instance.CanMoveTo(tile)) return;
 
-            UISelector.Instance.DeselectAll();
+            UISelectorManager.Instance.DeselectAll();
             UnitManager.Instance.MoveSelectedPlayerTo(tile);
         }
 
@@ -45,11 +46,11 @@ namespace Battle.Core
         {
             if (!TurnManager.Instance.currentAction.isAlly) return;
 
-            EnemyUnit target = UISelector.Instance.selectedEnemyUnit;
+            EnemyUnit target = UISelectorManager.Instance.selectedEnemyUnit;
             if (target == null) return;
 
             SkillManager.Instance.UseSelectedSkillOn(target);
-            UISelector.Instance.DeselectAll();
+            UISelectorManager.Instance.DeselectAll();
             TurnManager.Instance.EndCurrentTurn();
         }
 
@@ -57,13 +58,13 @@ namespace Battle.Core
         {
             if (!TurnManager.Instance.currentAction.isAlly) return;
 
-            if (UISelector.Instance.IsSelected(enemy))
+            if (UISelectorManager.Instance.IsSelected(enemy))
             {
-                UISelector.Instance.DeselectEnemy();
+                UISelectorManager.Instance.DeselectEnemy();
             }
             else
             {
-                UISelector.Instance.Select(enemy);
+                UISelectorManager.Instance.Select(enemy);
             }
         }
 

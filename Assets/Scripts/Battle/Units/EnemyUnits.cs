@@ -5,29 +5,33 @@ using System.Linq;
 using System.Collections.Generic;
 using Battle.UIEvents;
 using Battle.Core;
+using Battle.Data;
 
 public class EnemyUnit : BaseUnit
 {
     public GameObject uiPrefab; // UIEnemyInfo 프리팹 (Canvas 하위에 붙을 예정)
-    public GameObject enemyInfoPanel;
     private UIEnemyInfo uiInstance;
     private SpriteRenderer spriteRenderer;
     public GameObject selectionOutline;
     public bool isClicked = false;
 
-    private void Start()
+    public void Init(EnemyUnitData data, RectTransform enemyInfoPanel)
     {
-        stats = new UnitStats(20, 8, 2, 25);
-        spriteRenderer = GetComponent<SpriteRenderer>();
+        this.unitName = data.unitName;
+        this.stats = data.stats;
+        // this.uiPrefab = data.infoUIPrefab;
 
-        GameObject uiGO = Instantiate(uiPrefab, enemyInfoPanel.transform);
+        this.spriteRenderer = GetComponent<SpriteRenderer>();
+
+        // UI 생성
+        GameObject uiGO = GameObject.Instantiate(uiPrefab, enemyInfoPanel);
         uiInstance = uiGO.GetComponent<UIEnemyInfo>();
         uiInstance.Bind(stats, this.transform, uiGO);
 
-        // ✅ 테두리는 기본적으로 꺼놓기
         if (selectionOutline != null)
             selectionOutline.SetActive(false);
     }
+
 
     public void ShowSelected(bool show)
     {

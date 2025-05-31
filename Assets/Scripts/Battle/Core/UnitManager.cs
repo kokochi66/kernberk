@@ -10,6 +10,10 @@ namespace Battle.Core
     public class UnitManager : MonoBehaviour
     {
         public static UnitManager Instance;
+        [SerializeField] public RectTransform PlayerInfoPanel;
+        [SerializeField] public RectTransform EnemyInfoPanel;
+        [SerializeField] public RectTransform TurnOrderPanel;
+
 
         private List<PlayerUnit> playerUnits = new List<PlayerUnit>();
         private List<EnemyUnit> enemyUnits = new List<EnemyUnit>();
@@ -99,16 +103,27 @@ namespace Battle.Core
         {
             Debug.Log("[UnitManager] 유닛 초기화 시작");
 
-            // 내부 리스트에 등록
-            RegisterPlayerUnits(battleSetupData.PlayerUnits);
-            RegisterEnemyUnits(battleSetupData.EnemyUnits);
+            List<PlayerUnit> playerUnits = new();
+            for (int i = 0; i < battleSetupData.playerUnitDataList.Count; i++)
+            {
+                PlayerUnitData unitData = battleSetupData.playerUnitDataList[i];
+                PlayerUnit unit = Instantiate(unitData.prefab).GetComponent<PlayerUnit>();
+                unit.Init(unitData); // 유닛에게 데이터를 세팅해주는 함수 필요
+                playerUnits.Add(unit);
+            }
 
-            var allTiles = TileManager.Instance.GetAllTiles();
+            List<EnemyUnit> enemyUnits = new();
+
+            // 내부 리스트에 등록
+            RegisterPlayerUnits(playerUnits);
+            RegisterEnemyUnits(enemyUnits);
+
+            List<HexTile> allTiles = TileManager.Instance.GetAllTiles();
 
             // ▶ 아군 배치
-            for (int i = 0; i < battleSetupData.PlayerUnits.Count; i++)
+            for (int i = 0; i < playerUnits.Count; i++)
             {
-                var unit = battleSetupData.PlayerUnits[i];
+                var unit = playerUnits[i];
                 Vector2Int spawnPos = battleSetupData.PlayerSpawnPositions[i];
                 HexTile tile = allTiles.FirstOrDefault(t => t.tileX == spawnPos.x && t.tileY == spawnPos.y);
 
@@ -117,7 +132,7 @@ namespace Battle.Core
                     unit.SetCurrentTile(tile);
 
                     // UI 생성
-                    GameObject uiObj = GameObject.Instantiate(battleSetupData.PlayerInfoPrefab, battleSetupData.PlayerInfoPanel);
+                    GameObject uiObj = GameObject.Instantiate(unit.infoUIPrefab, PlayerInfoPanel);
                     var uiPlayerInfo = uiObj.GetComponent<UIPlayerInfo>();
                     uiPlayerInfo.Init(unit.stats);
 
@@ -131,9 +146,9 @@ namespace Battle.Core
             }
 
             // ▶ 적군 배치
-            for (int i = 0; i < battleSetupData.EnemyUnits.Count; i++)
+            for (int i = 0; i < enemyUnits.Count; i++)
             {
-                var unit = battleSetupData.EnemyUnits[i];
+                var unit = enemyUnits[i];
                 Vector2Int spawnPos = battleSetupData.EnemySpawnPositions[i];
                 HexTile tile = allTiles.FirstOrDefault(t => t.tileX == spawnPos.x && t.tileY == spawnPos.y);
 
