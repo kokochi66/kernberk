@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Battle.Units;
@@ -10,8 +11,10 @@ namespace Battle.Core
     public class UnitManager : MonoBehaviour
     {
         public static UnitManager Instance;
-        [SerializeField] public RectTransform PlayerInfoPanel;
-        [SerializeField] public RectTransform EnemyInfoPanel;
+        [SerializeField] private Transform PlayerUnitPanel;
+        [SerializeField] private RectTransform EnemyPanel;
+        [SerializeField] private RectTransform PlayerInfoPanel;
+        [SerializeField] private RectTransform EnemyInfoPanel;
         [SerializeField] public RectTransform TurnOrderPanel;
 
 
@@ -88,14 +91,10 @@ namespace Battle.Core
         /// <summary>
         /// 특정 타일에 위치한 유닛 찾기
         /// </summary>
-        public BaseUnit GetUnitAtTile(HexTile tile)
+        public PlayerUnit GetUnitAtTile(HexTile tile)
         {
             foreach (var unit in playerUnits)
                 if (unit.CurrentTile == tile) return unit;
-
-            foreach (var unit in enemyUnits)
-                if (unit.CurrentTile == tile) return unit;
-
             return null;
         }
 
@@ -103,64 +102,71 @@ namespace Battle.Core
         {
             Debug.Log("[UnitManager] 유닛 초기화 시작");
 
+            // ✅ 모든 타일 정보 가져오기
+            List<HexTile> allTiles = TileManager.Instance.GetAllTiles();
+
+            // ▶ 아군 유닛 생성 및 배치
             List<PlayerUnit> playerUnits = new();
             for (int i = 0; i < battleSetupData.playerUnitDataList.Count; i++)
             {
                 PlayerUnitData unitData = battleSetupData.playerUnitDataList[i];
-                PlayerUnit unit = Instantiate(unitData.prefab).GetComponent<PlayerUnit>();
-                unit.Init(unitData); // 유닛에게 데이터를 세팅해주는 함수 필요
-                playerUnits.Add(unit);
-            }
+                PlayerUnit unit = Instantiate(unitData.prefab, PlayerUnitPanel).GetComponent<PlayerUnit>();
+                unit.Init(unitData); // 스탯, 스킬 주입
 
-            List<EnemyUnit> enemyUnits = new();
-
-            // 내부 리스트에 등록
-            RegisterPlayerUnits(playerUnits);
-            RegisterEnemyUnits(enemyUnits);
-
-            List<HexTile> allTiles = TileManager.Instance.GetAllTiles();
-
-            // ▶ 아군 배치
-            for (int i = 0; i < playerUnits.Count; i++)
-            {
-                var unit = playerUnits[i];
                 Vector2Int spawnPos = battleSetupData.PlayerSpawnPositions[i];
                 HexTile tile = allTiles.FirstOrDefault(t => t.tileX == spawnPos.x && t.tileY == spawnPos.y);
-
                 if (tile != null)
                 {
                     unit.SetCurrentTile(tile);
-
-                    // UI 생성
-                    GameObject uiObj = GameObject.Instantiate(unit.infoUIPrefab, PlayerInfoPanel);
-                    var uiPlayerInfo = uiObj.GetComponent<UIPlayerInfo>();
-                    uiPlayerInfo.Init(unit.stats);
-
-                    RectTransform rt = uiObj.GetComponent<RectTransform>();
-                    rt.anchoredPosition = new Vector2(-290f + (i * 180f), -45f);
                 }
                 else
                 {
-                    Debug.LogWarning($"❌ [UnitManager] 유효한 스폰 타일이 없습니다. ({spawnPos.x}, {spawnPos.y})");
+                    Debug.LogWarning($"❌ [PlayerUnit] 유효한 스폰 타일이 없습니다: {spawnPos}");
                 }
+
+                // ✅ Player UI 생성 및 연결
+                GameObject uiObj = Instantiate(unitData.infoUIPrefab, PlayerInfoPanel);
+                UIPlayerInfo infoUI = uiObj.GetComponent<UIPlayerInfo>();
+                infoUI.Init(unit.stats);
+                unit.PlayerInfoUI = infoUI;
+
+                // UI 위치 배치 (예시 위치 기준)
+                RectTransform rt = uiObj.GetComponent<RectTransform>();
+                rt.anchoredPosition = new Vector2(-290f + (i * 180f), -45f);
+
+                // ✅ 격자 필드 위 유닛 외형 표시
+                GameObject fieldSprite = Instantiate(unitData.fieldSpritePrefab, tile.transform);
+                unit.FieldSpriteInstance = fieldSprite;
+
+
+
+
+                playerUnits.Add(unit);
             }
 
-            // ▶ 적군 배치
-            for (int i = 0; i < enemyUnits.Count; i++)
+            // ▶ 적 유닛 생성 및 배치
+            List<EnemyUnit> enemyUnits = new();
+            for (int i = 0; i < battleSetupData.enemyUnitDataList.Count; i++)
             {
-                var unit = enemyUnits[i];
-                Vector2Int spawnPos = battleSetupData.EnemySpawnPositions[i];
-                HexTile tile = allTiles.FirstOrDefault(t => t.tileX == spawnPos.x && t.tileY == spawnPos.y);
+                EnemyUnitData unitData = battleSetupData.enemyUnitDataList[i];
+                EnemyUnit unit = Instantiate(unitData.prefab, EnemyPanel).GetComponent<EnemyUnit>();
+                unit.Init(unitData); // 스탯, 이름, 공격패턴
 
-                if (tile != null)
-                {
-                    unit.SetCurrentTile(tile);
-                }
+                // ✅ 적 UI 생성 및 연결
+                GameObject uiObj = Instantiate(unitData.infoUIPrefab, EnemyInfoPanel); // ⬅ 이 prefab은 UnitManager가 들고 있어야 함
+                UIEnemyInfo infoUI = uiObj.GetComponent<UIEnemyInfo>();
+                infoUI.Bind(unit.stats, unit.transform, uiObj);
+                unit.EnemyInfoUI = infoUI;
+
+                enemyUnits.Add(unit);
             }
+
+            // ✅ 리스트 등록
+            RegisterPlayerUnits(playerUnits);
+            RegisterEnemyUnits(enemyUnits);
 
             Debug.Log("[UnitManager] 유닛 초기화 완료");
         }
-
 
 
         public List<UnitActionData> GenerateActionQueue()
@@ -172,8 +178,19 @@ namespace Battle.Core
                     actions.Add(new UnitActionData(p, p.stats.Agility, true));
 
             foreach (var e in enemyUnits)
+            {
                 if (!e.stats.IsDead)
-                    actions.Add(new UnitActionData(e, e.stats.Agility, false));
+                {
+                    // 🟥 tileX가 1 또는 2인 모든 타일을 공격 범위로 지정
+                    List<HexTile> attackTiles = TileManager.Instance
+                        .GetAllTiles()
+                        .Where(tile => tile.tileX == 1 || tile.tileX == 2)
+                        .ToList();
+
+                    actions.Add(new UnitActionData(e, e.stats.Agility, false, attackTiles));
+                }
+            }
+
 
             Debug.Log($"⚙️ [UnitManager] 액션 큐 {actions.Count}개 생성됨");
             return actions;
@@ -184,11 +201,9 @@ namespace Battle.Core
         ///
         public bool CanMoveTo(HexTile tile)
         {
-            PlayerUnit selected = GetSelectedPlayer();
-            if (selected == null || tile.IsOccupied()) return false;
-
-            return IsAdjacent(selected.CurrentTile, tile);
+            return tile.State == HexTileState.Movable;
         }
+
 
         ///
         /// 현재 선택된 플레이어 유닛을 반환
@@ -199,19 +214,7 @@ namespace Battle.Core
             return playerUnits.FirstOrDefault(p => !p.stats.IsDead);
         }
 
-        public void MoveSelectedPlayerTo(HexTile tile)
-        {
-            var selectedPlayer = playerUnits.FirstOrDefault(p => p != null && !p.stats.IsDead && p.CurrentTile != null);
-            if (selectedPlayer != null)
-            {
-                selectedPlayer.MoveTo(tile, () =>
-                {
-                    TurnManager.Instance.EndCurrentTurn();
-                });
-            }
-        }
-
-        public void SelectPlayer(BaseUnit unit)
+        public void SelectPlayer(PlayerUnit unit)
         {
             if (unit == null)
             {
@@ -224,32 +227,48 @@ namespace Battle.Core
                 Debug.LogWarning("[UnitManager] 유닛이 플레이어 목록에 없음");
                 return;
             }
-
-            Debug.Log($"[UnitManager] 유닛 선택: {unit.unitName}");
+            UISelectorManager.Instance.Select(unit);
+            TileManager.Instance.HighlightPlayerMoveRange(unit);
             // 선택된 유닛 관련 상태 저장 또는 UI 업데이트 추가 가능
         }
 
 
         public void ExecuteEnemyTurn(UnitActionData action)
         {
-            if (action.unit.stats.IsDead) return;
+            if (action.enemyUnit.stats.IsDead) return;
 
+            StartCoroutine(EnemyAttackRoutine(action));
+        }
+
+
+        private IEnumerator EnemyAttackRoutine(UnitActionData action)
+        {
             var attackTiles = action.attackTiles;
 
+            // 1. 타일 빨간색 표시
             foreach (var tile in attackTiles)
-                tile.Highlight(Color.red);
+                tile.SetState(HexTileState.EnemyAttackPreview);
 
+            // 2. 1초 대기 (연출용)
+            yield return new WaitForSeconds(0.5f);
+
+            // 3. 피해 처리
             foreach (var player in playerUnits)
             {
                 if (!player.stats.IsDead && attackTiles.Contains(player.CurrentTile))
                 {
-                    player.ReceiveAttack(action.unit.stats.Attack);
+                    player.ReceiveAttack(action.enemyUnit.stats.Attack);
                 }
             }
 
+            // 4. 타일 리셋
             foreach (var tile in attackTiles)
-                tile.ResetHighlight();
+                tile.ResetState();
+
+            // 5. 턴 종료
+            TurnManager.Instance.EndCurrentTurn();
         }
+
 
 
         private bool IsAdjacent(HexTile from, HexTile to)
@@ -269,6 +288,8 @@ namespace Battle.Core
 
             return false;
         }
+
+
 
     }
 }

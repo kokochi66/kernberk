@@ -15,9 +15,16 @@ MonoBehaviour:
   unitName: 
   description: 
   prefab: {fileID: 4817795877786023926, guid: 847a73918202fa14f98da684803853cf, type: 3}
+  infoUIPrefab: {fileID: 1747101503102441046, guid: ef8409e5a7c76454bbc02f0a7ada2813, type: 3}
+  turnIconPrefab: {fileID: 6515937247449700091, guid: 7869d106a9f56f440a4649c504f4d4de, type: 3}
+  fieldSpritePrefab: {fileID: 4817795877786023926, guid: 847a73918202fa14f98da684803853cf, type: 3}
   stats:
     MaxHP: 100
     CurrentHP: 100
     Attack: 10
     Defense: 5
     Agility: 20
+  skillDataList:
+  - {fileID: 11400000, guid: b44e9f2f0a0a652479733d41d99dbb3d, type: 2}
+  - {fileID: 11400000, guid: bebbf33035d6b94459f0f93350733474, type: 2}
+  - {fileID: 11400000, guid: 95676e30a1c2cab4aa0b7980f50c7543, type: 2}

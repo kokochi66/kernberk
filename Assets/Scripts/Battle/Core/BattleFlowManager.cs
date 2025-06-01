@@ -35,12 +35,13 @@ namespace Battle.Core
             isBattleActive = true;
             Debug.Log("⚔️ 전투 시작!");
 
+            UnitManager.Instance.InitializeUnits(setupData);
+            Debug.Log("⚔️ 전투 시작 세팅 완료!");
+
             // 전투 준비 완료 시 스텝 시작
             TurnManager.Instance.OnStepEnded += HandleStepEnded;
             TurnManager.Instance.OnTurnStarted += HandleTurnStarted;
             TurnManager.Instance.StartNewStep();
-
-            UnitManager.Instance.InitializeUnits(setupData);
         }
 
         /// <summary>
@@ -50,9 +51,9 @@ namespace Battle.Core
         {
             if (!isBattleActive) return;
 
-            Debug.Log($"🎯 턴 시작: {action.unit.unitName} ({(action.isAlly ? "아군" : "적군")})");
-
-            if (action.unit.stats.IsDead)
+            Debug.Log($"🎯 턴 시작: {(action.isAlly ? action.playerUnit.unitName : action.enemyUnit.unitName)} ({(action.isAlly ? "아군" : "적군")})");
+            var isDead = action.isAlly ? action.playerUnit.stats.IsDead : action.enemyUnit.stats.IsDead;
+            if (isDead)
             {
                 Debug.Log("☠️ 유닛이 사망하여 턴 건너뜀");
                 TurnManager.Instance.EndCurrentTurn();
@@ -62,7 +63,8 @@ namespace Battle.Core
             // 유닛별 턴 행동 시작 (플레이어나 적에 따라 분기 가능)
             if (action.isAlly)
             {
-                UnitManager.Instance.SelectPlayer(action.unit);
+                UnitManager.Instance.SelectPlayer(action.playerUnit);
+                TurnManager.Instance.ShowSkills(action.playerUnit);
             }
             else
             {

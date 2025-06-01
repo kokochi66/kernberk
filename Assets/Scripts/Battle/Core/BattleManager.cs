@@ -24,58 +24,68 @@ namespace Battle.Core
 
         private void Start()
         {
+            Debug.Log("🚩 [BattleManager] Start() 호출됨");
             InitializeBattle();
         }
 
         private void InitializeBattle()
         {
-            // 초기 유닛 배치 및 UI 세팅
+            Debug.Log("⚔️ [BattleManager] InitializeBattle() - 전투 초기화 시작");
             BattleFlowManager.Instance.StartBattle(battleSetupData);
-        }
-
-        public void OnTileClicked(HexTile tile)
-        {
-            if (!TurnManager.Instance.currentAction.isAlly) return;
-            if (!UnitManager.Instance.CanMoveTo(tile)) return;
-
-            UISelectorManager.Instance.DeselectAll();
-            UnitManager.Instance.MoveSelectedPlayerTo(tile);
+            Debug.Log("✅ [BattleManager] 전투 초기화 완료");
         }
 
         public void OnClickAttack()
         {
-            if (!TurnManager.Instance.currentAction.isAlly) return;
+            if (!TurnManager.Instance.currentAction.isAlly)
+            {
+                Debug.Log("⛔ [BattleManager] 적 턴 중이므로 공격 불가");
+                return;
+            }
 
             EnemyUnit target = UISelectorManager.Instance.selectedEnemyUnit;
-            if (target == null) return;
+            if (target == null)
+            {
+                Debug.Log("❌ [BattleManager] 선택된 적 유닛이 없음 - 공격 취소");
+                return;
+            }
 
-            SkillManager.Instance.UseSelectedSkillOn(target);
-            UISelectorManager.Instance.DeselectAll();
-            TurnManager.Instance.EndCurrentTurn();
+            Debug.Log($"🔥 [BattleManager] 공격 시도: {TurnManager.Instance.currentAction.playerUnit.unitName} → {target.unitName}");
+
+            SkillManager.Instance.UseSelectedSkillOn(target, () =>
+            {
+                Debug.Log("🔚 [BattleManager] 스킬 연출 완료 → 턴 종료");
+                TurnManager.Instance.EndCurrentTurn();
+            });
         }
+
 
         public void OnEnemyUnitClicked(EnemyUnit enemy)
         {
-            if (!TurnManager.Instance.currentAction.isAlly) return;
+            if (!TurnManager.Instance.currentAction.isAlly)
+            {
+                Debug.Log("⛔ [BattleManager] 적 턴 중이므로 선택 불가");
+                return;
+            }
 
             if (UISelectorManager.Instance.IsSelected(enemy))
             {
+                Debug.Log($"🔽 [BattleManager] 적 유닛 선택 해제: {enemy.unitName}");
                 UISelectorManager.Instance.DeselectEnemy();
             }
             else
             {
+                Debug.Log($"🔼 [BattleManager] 적 유닛 선택됨: {enemy.unitName}");
                 UISelectorManager.Instance.Select(enemy);
             }
         }
 
         public void OnPlayerIconClicked(PlayerUnit unit)
         {
+            Debug.Log($"👆 [BattleManager] 플레이어 아이콘 클릭됨: {unit.unitName}");
             UnitManager.Instance.SelectPlayer(unit);
         }
 
-        public void OnSkillSlotClicked(UnitSkill skill)
-        {
-            SkillManager.Instance.SelectSkill(skill);
-        }
+
     }
 }

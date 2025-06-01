@@ -1,14 +1,14 @@
 using System.Collections.Generic;
 using UnityEngine;
-using Battle.Core;
+using Battle.Units;
 
-namespace Battle.UIEvents
+namespace Battle.Core
 {
-    /// 
+    /// <summary>
     /// UI 선택 상태를 관리하는 중앙 컨트롤러.
     /// 현재 선택된 오브젝트들의 활성/비활성 상태를 관리하고,
     /// 타입에 따라 적절한 동작을 트리거할 수 있게 합니다.
-    /// 
+    /// </summary>
     public class UISelectorManager : MonoBehaviour
     {
         public static UISelectorManager Instance;
@@ -16,7 +16,7 @@ namespace Battle.UIEvents
         public UnitActionData selectedActionData { get; private set; }
         public PlayerUnit selectedPlayerUnit { get; private set; }
         public EnemyUnit selectedEnemyUnit { get; private set; }
-        public UnitSkill selectedSkill { get; private set; }
+        public UISkillSlot selectedSkill { get; private set; }
 
         private void Awake()
         {
@@ -48,13 +48,19 @@ namespace Battle.UIEvents
         public void Select(EnemyUnit enemy)
         {
             selectedEnemyUnit = enemy;
+            enemy.ShowSelected(true);
             Debug.Log($"[Selector] 적 선택: {enemy.unitName}");
         }
 
-        public void Select(UnitSkill skill)
+        public void Select(UISkillSlot skillSlot)
         {
-            selectedSkill = skill;
-            Debug.Log($"[Selector] 스킬 선택: {skill.skillName}");
+            if (selectedSkill != null)
+            {
+                selectedSkill.SetSelected(false);
+            }
+
+            selectedSkill = skillSlot;
+            Debug.Log($"[Selector] 스킬 선택: {skillSlot.skillData.skillName}");
         }
 
         public void DeselectAction()
@@ -79,23 +85,32 @@ namespace Battle.UIEvents
 
         public void DeselectEnemy()
         {
+            if (selectedEnemyUnit != null)
+            {
+            selectedEnemyUnit.ShowSelected(false);    
+            }
+        
             selectedEnemyUnit = null;
             Debug.Log("[Selector] 적 유닛 선택 해제");
         }
 
         public void DeselectSkill()
         {
+            if (selectedSkill != null)
+            {
+            selectedSkill.SetSelected(false);    
+            }
+            
             selectedSkill = null;
             Debug.Log("[Selector] 스킬 선택 해제");
         }
 
-
         public void DeselectAll()
         {
-            selectedActionData = null;
-            selectedPlayerUnit = null;
-            selectedEnemyUnit = null;
-            selectedSkill = null;
+            DeselectAction();
+            DeselectPlayer();
+            DeselectEnemy();
+            DeselectSkill();
             Debug.Log("[Selector] 모든 선택 해제");
         }
 
@@ -114,11 +129,9 @@ namespace Battle.UIEvents
             return selectedEnemyUnit == enemy;
         }
 
-        public bool IsSelected(UnitSkill skill)
+        public bool IsSelected(UISkillSlot skillSlot)
         {
-            return selectedSkill == skill;
+            return selectedSkill == skillSlot;
         }
-
     }
-
 }

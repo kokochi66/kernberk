@@ -2,36 +2,37 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using UnityEngine.EventSystems;
+using Battle.Units;
+using Battle.Core;
 
 public class UISkillSlot : MonoBehaviour, IPointerClickHandler
 {
     public Image icon;
     public TextMeshProUGUI label;
 
-    private Image background; // ← SkillSlot 자체에 붙은 Image
-    private System.Action onClick;
+    private Image background;
+    public UnitSkillData skillData;
 
     private void Awake()
     {
-        // SkillSlot 루트에 붙은 Image를 자동 참조
         background = GetComponent<Image>();
     }
 
-    public void Init(Sprite skillSprite, string description, System.Action clickAction)
+    public void Init(UnitSkillData data)
     {
-        icon.sprite = skillSprite;
-        label.text = description;
-        onClick = clickAction;
+        skillData = data;
+        icon.sprite = data.icon;
+        label.text = data.description;
     }
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        Debug.Log($"🖱️ [SkillSlot] 클릭됨: {label.text}");
-        onClick?.Invoke();
+        SetSelected(true);
+        UISelectorManager.Instance.Select(this);
     }
 
     public void SetSelected(bool isSelected)
     {
-        background.color = isSelected ? new Color(1, 1, 1, 0.4f) : new Color(0, 0, 0, 0.2f);
+        background.color = isSelected ? new Color(1f, 1f, 1f, 0.4f) : new Color(0f, 0f, 0f, 0.2f);
     }
 }

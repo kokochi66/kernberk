@@ -6,39 +6,56 @@ public class HexTile : MonoBehaviour
 {
     public int tileX;
     public int tileY;
-    private bool isOccupied = false;
+    public bool isOccupied = false;
 
-    public void SetPosition(int x, int y)
+    public HexTileState State { get; private set; } = HexTileState.None;
+
+    public void SetState(HexTileState state)
     {
-        tileX = x;
-        tileY = y;
+        this.State = state;
+
+        var renderer = GetComponent<SpriteRenderer>();
+        switch (state)
+        {
+            case HexTileState.None:
+                renderer.color = Color.white;
+                break;
+            case HexTileState.Movable:
+                renderer.color = Color.green;
+                break;
+            case HexTileState.EnemyAttackPreview:
+                renderer.color = Color.red;
+                break;
+        }
+
+        // Debug.Log($"🔁 [HexTile] ({tileX}, {tileY}) 상태 변경 → {state}");
+    }
+
+    public void ResetState()
+    {
+        SetState(HexTileState.None);
     }
 
     public void SetOccupied(bool value)
     {
         isOccupied = value;
+        // Debug.Log($"📌 [HexTile] ({tileX}, {tileY}) 점유 상태 → {(value ? "OCCUPIED" : "FREE")}");
     }
 
     public bool IsOccupied() => isOccupied;
 
     private void OnMouseDown()
     {
-        if (BattleManager.Instance != null)
+        Debug.Log($"🖱️ [HexTile] 클릭됨 → ({tileX}, {tileY}), 현재 상태: {State}");
+
+        if (State == HexTileState.Movable)
         {
-            BattleManager.Instance.OnTileClicked(this);
+            // Debug.Log($"✅ [HexTile] 이동 시도됨 → ({tileX}, {tileY})");
+            TurnManager.Instance.MoveSelectedPlayerTo(this);
+        }
+        else
+        {
+            // Debug.Log($"⛔ [HexTile] 이동 불가 상태 ({State}) → 무시됨");
         }
     }
-
-
-    public void Highlight(Color color)
-    {
-        GetComponent<SpriteRenderer>().color = color;
-    }
-
-    public void ResetHighlight()
-    {
-        GetComponent<SpriteRenderer>().color = Color.white;
-    }
-
-
 }

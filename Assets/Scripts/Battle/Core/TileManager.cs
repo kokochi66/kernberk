@@ -37,31 +37,88 @@ namespace Battle.Core
 
         private void ApplyHighlight(List<HexTile> tiles, Color color)
         {
+            HexTileState state = color == Color.green
+                ? HexTileState.Movable
+                : color == Color.red
+                    ? HexTileState.EnemyAttackPreview
+                    : HexTileState.None;
+
             foreach (var tile in tiles)
-                tile.Highlight(color);
+                tile.SetState(state);
         }
 
         private void ClearHighlights(List<HexTile> tiles)
         {
+            Debug.Log($"🧹 [TileManager] ClearHighlights 호출됨 - 타일 개수: {tiles.Count}");
+
             foreach (var tile in tiles)
-                tile.ResetHighlight();
+                tile.ResetState();
         }
+
+
 
         /// <summary>
         /// 이동 범위 하이라이트 (초록색)
         /// </summary>
-        public void HighlightPlayerMoveRange(List<HexTile> tiles)
+        public void HighlightPlayerMoveRange(PlayerUnit unit)
         {
-            PushHighlightLayer(tiles, Color.green);
+            if (unit == null || unit.CurrentTile == null)
+            {
+                Debug.LogWarning("[TileManager] 유닛 또는 현재 타일 정보가 없습니다.");
+                return;
+            }
+
+            HexTile origin = unit.CurrentTile;
+            List<HexTile> allTiles = GetAllTiles();
+            List<HexTile> moveableTiles = new();
+
+            foreach (var tile in allTiles)
+            {
+                if (tile == origin) continue;
+                if (!IsAdjacent(origin, tile)) continue;
+                if (tile.IsOccupied()) continue;
+
+                tile.SetState(HexTileState.Movable);
+                moveableTiles.Add(tile);
+            }
+
+            PushHighlightLayer(moveableTiles, Color.green);
         }
+
+
+
+        private bool IsAdjacent(HexTile from, HexTile to)
+        {
+            int dx = to.tileX - from.tileX;
+            int dy = to.tileY - from.tileY;
+
+            // 짝수열과 홀수열에 따라 인접한 타일의 상대 좌표가 다름
+            (int dx, int dy)[] offsets = (from.tileX % 2 == 0)
+                ? new (int, int)[] { (-1, 0), (-1, 1), (0, -1), (0, 1), (1, 0), (1, 1) }  // 짝수 열
+                : new (int, int)[] { (-1, -1), (-1, 0), (0, -1), (0, 1), (1, -1), (1, 0) }; // 홀수 열
+
+            foreach (var offset in offsets)
+            {
+                if (dx == offset.dx && dy == offset.dy)
+                    return true;
+            }
+
+            return false;
+        }
+
+
 
         /// <summary>
         /// 적 공격범위 하이라이트 (빨간색)
         /// </summary>
         public void HighlightEnemyAttackPreview(List<HexTile> tiles)
         {
+            foreach (var tile in tiles)
+                tile.SetState(HexTileState.EnemyAttackPreview);
+
             PushHighlightLayer(tiles, Color.red);
         }
+
 
         public void PushHighlightLayer(List<HexTile> tiles, Color color)
         {

@@ -12,9 +12,13 @@ namespace Battle.Data
         public string description;
 
         public GameObject prefab;               // EnemyUnit 프리팹
+        [Header("스탯")]
         public UnitStats stats;
 
         public string attackPattern;            // "front_2", "cone", etc
         public Sprite icon;                     // 턴 인디케이터에서 사용할 아이콘
+
+        public GameObject infoUIPrefab;
+        public GameObject turnIconPrefab;
     }
 }

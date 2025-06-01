@@ -20,6 +20,12 @@ namespace Battle.Units
             Agility = agi;
         }
 
+        public UnitStats Clone()
+        {
+            return new UnitStats(MaxHP, Attack, Defense, Agility);
+        }
+
+
         public void TakeDamage(int rawDamage)
         {
             int damage = Mathf.Max(1, rawDamage - Defense);
