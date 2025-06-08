@@ -5,14 +5,16 @@ using Battle.Units;
 using Battle.UIEvents;
 using Battle.Data;
 using Battle.Core;
+using Battle.Core.Service;
+using Battle.Core.Manager;
 
 public class EnemyUnit : BaseUnit
 {
     public GameObject SelectionOutline { get; set; }
     public UIEnemyInfo EnemyInfoUI { get; set; }
     public SpriteRenderer SpriteRenderer { get; private set; }
-
     public string AttackPattern { get; private set; }
+    public bool isClicked = false;
 
     public void Init(EnemyUnitData data)
     {
@@ -72,7 +74,7 @@ public class EnemyUnit : BaseUnit
 
     private void OnMouseDown()
     {
-        if (!TurnManager.Instance.currentAction.isAlly) return;
-        BattleManager.Instance.OnEnemyUnitClicked(this);
+        if (!TurnService.Instance.currentAction.isAlly) return;
+        UnitManager.Instance.SelectEnemy(this);
     }
 }

@@ -2,7 +2,7 @@ namespace Battle.UIEvents
 {
     using UnityEngine;
     using UnityEngine.EventSystems;
-    using Battle.Core; // BattleManager 참조
+    using Battle.Core.Service;
 
     public class TurnInfoIcon : MonoBehaviour, IPointerClickHandler
     {
@@ -13,13 +13,15 @@ namespace Battle.UIEvents
         {
             if (!actionData.isAlly)
             {
-                if (UISelectorManager.Instance.IsSelected(actionData))
+                if (isClicked)
                 {
-                    UISelectorManager.Instance.DeselectAction();
+                    TurnService.Instance.DeselectAction();
+                    this.isClicked = false;
                 }
                 else
                 {
-                    UISelectorManager.Instance.Select(actionData); // 또는 EnemyAction
+                    TurnService.Instance.SelectAction(actionData);
+                    this.isClicked = true;
                 }
             }
         }

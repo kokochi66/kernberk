@@ -3,7 +3,7 @@ using UnityEngine.UI;
 using TMPro;
 using UnityEngine.EventSystems;
 using Battle.Units;
-using Battle.Core;
+using Battle.Core.Manager;
 
 public class UISkillSlot : MonoBehaviour, IPointerClickHandler
 {
@@ -28,7 +28,7 @@ public class UISkillSlot : MonoBehaviour, IPointerClickHandler
     public void OnPointerClick(PointerEventData eventData)
     {
         SetSelected(true);
-        UISelectorManager.Instance.Select(this);
+        SkillManager.Instance.SelectSkill(this);
     }
 
     public void SetSelected(bool isSelected)

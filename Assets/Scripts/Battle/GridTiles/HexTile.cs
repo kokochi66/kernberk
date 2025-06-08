@@ -1,6 +1,6 @@
 using UnityEngine;
 using Battle.Units;
-using Battle.Core;
+using Battle.Core.Service;
 
 public class HexTile : MonoBehaviour
 {
@@ -51,7 +51,7 @@ public class HexTile : MonoBehaviour
         if (State == HexTileState.Movable)
         {
             // Debug.Log($"✅ [HexTile] 이동 시도됨 → ({tileX}, {tileY})");
-            TurnManager.Instance.MoveSelectedPlayerTo(this);
+            TurnService.Instance.MoveSelectedPlayerTo(this);
         }
         else
         {
