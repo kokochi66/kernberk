@@ -1506,52 +1506,6 @@ PolygonCollider2D:
       - {x: 1.6899999, y: -2.71}
       - {x: 2.1, y: -2}
   m_UseDelaunayMesh: 0
---- !u!1 &81459889
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 81459890}
-  - component: {fileID: 81459891}
-  m_Layer: 0
-  m_Name: BattleFlowManager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &81459890
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 81459889}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 551804003}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &81459891
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 81459889}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3032132210b55b64fb0b032f1a7efb09, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  victoryScreen: {fileID: 1905152771}
-  defeatScreen: {fileID: 993755329}
 --- !u!1 &99018751
 GameObject:
   m_ObjectHideFlags: 0
@@ -1596,6 +1550,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aacc3b552cf96b347a828ee54a29e84c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  skillSlotPrefab: {fileID: 9103151420884330250, guid: 34c3be25e7815e84297c4b50af3c233f, type: 3}
+  PlayerSkillInfoPanel: {fileID: 939765608}
 --- !u!1 &110757902
 GameObject:
   m_ObjectHideFlags: 0
@@ -2840,14 +2796,10 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1607797774}
-  - {fileID: 81459890}
   - {fileID: 99018752}
   - {fileID: 771948969}
   - {fileID: 1107387260}
   - {fileID: 2092933187}
-  - {fileID: 816016811}
-  - {fileID: 1024076936}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &616551666
@@ -3906,9 +3858,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1607797775}
-        m_TargetAssemblyTypeName: Battle.Core.BattleManager, Assembly-CSharp
-        m_MethodName: OnClickAttack
+      - m_Target: {fileID: 1107387261}
+        m_TargetAssemblyTypeName: Battle.Core.Service.TurnService, Assembly-CSharp
+        m_MethodName: ExecutePlayerSkill
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -4459,50 +4411,6 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 417455fb0ca344b4ab9544163d3fd273, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!1 &816016810
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 816016811}
-  - component: {fileID: 816016812}
-  m_Layer: 0
-  m_Name: UISelector
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &816016811
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 816016810}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 551804003}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &816016812
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 816016810}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6563fbbf95b958a42b393cf36ee56f68, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &817283186
@@ -5917,37 +5825,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 993755329}
   m_CullTransparentMesh: 1
---- !u!1 &1024076935
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1024076936}
-  m_Layer: 0
-  m_Name: DataManager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1024076936
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1024076935}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 551804003}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1035092761
 GameObject:
   m_ObjectHideFlags: 0
@@ -6990,7 +6867,7 @@ GameObject:
   - component: {fileID: 1107387260}
   - component: {fileID: 1107387261}
   m_Layer: 0
-  m_Name: TurnManager
+  m_Name: TurnService
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7020,11 +6897,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 1107387259}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 29630da860f24b94b9dfb4ab27704117, type: 3}
+  m_Script: {fileID: 11500000, guid: 8ba298d464f952240b9407c71eec9823, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  skillSlotPrefab: {fileID: 9103151420884330250, guid: 34c3be25e7815e84297c4b50af3c233f, type: 3}
-  PlayerSkillInfoPanel: {fileID: 939765608}
+  setupData: {fileID: 11400000, guid: e689c677cb090bd4fa1c77d2b725ad05, type: 2}
+  victoryScreen: {fileID: 0}
+  defeatScreen: {fileID: 0}
 --- !u!1 &1116533388
 GameObject:
   m_ObjectHideFlags: 0
@@ -9554,51 +9432,6 @@ PolygonCollider2D:
       - {x: 1.6899999, y: -2.71}
       - {x: 2.1, y: -2}
   m_UseDelaunayMesh: 0
---- !u!1 &1607797773
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1607797774}
-  - component: {fileID: 1607797775}
-  m_Layer: 0
-  m_Name: BattleManager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1607797774
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1607797773}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 502.831, y: 4.2194824, z: 2.1426883}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 551804003}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1607797775
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1607797773}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 639d0e75eb2c53e48a4c87abc518b14e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  battleSetupData: {fileID: 11400000, guid: e689c677cb090bd4fa1c77d2b725ad05, type: 2}
 --- !u!1 &1660508864
 GameObject:
   m_ObjectHideFlags: 0
