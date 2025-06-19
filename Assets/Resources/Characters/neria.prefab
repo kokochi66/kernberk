@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 5272784097495180739}
   - component: {fileID: 2978665517311710926}
   m_Layer: 5
-  m_Name: shian
+  m_Name: neria
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -35,7 +35,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 900, y: 900}
+  m_SizeDelta: {x: 610.423, y: 900}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &5272784097495180739
 CanvasRenderer:
@@ -65,7 +65,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Texture: {fileID: 2800000, guid: 7a1b8b44bf37c4d4d83deaf414baacdb, type: 3}
+  m_Texture: {fileID: 2800000, guid: 2b3b7f691a999514283362c2327fe562, type: 3}
   m_UVRect:
     serializedVersion: 2
     x: 0
