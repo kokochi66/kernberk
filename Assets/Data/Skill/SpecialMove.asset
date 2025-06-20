@@ -9,14 +9,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 001e949f75ca8034eb79fb9ea699587c, type: 3}
-  m_Name: PlayerUnitSkillData3
+  m_Script: {fileID: 11500000, guid: 66fcfaefee5a3be45a5d9f4b8789dbfc, type: 3}
+  m_Name: SpecialMove
   m_EditorClassIdentifier: 
-  skillName: "\uC2A4\uD0AC2"
-  description: 'DMG100
-
-    SP50'
-  icon: {fileID: 21300000, guid: cd8ac29caecd5cd4ba226ceea681d8ba, type: 3}
-  damage: 100
-  spCost: 50
-  spGain: 0
+  damage: 50
+  spGain: 10

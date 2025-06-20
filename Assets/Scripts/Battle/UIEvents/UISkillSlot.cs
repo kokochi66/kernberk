@@ -3,7 +3,7 @@ using UnityEngine.UI;
 using TMPro;
 using UnityEngine.EventSystems;
 using Battle.Units;
-using Battle.Core.Manager;
+using Battle.Core.Service;
 
 public class UISkillSlot : MonoBehaviour, IPointerClickHandler
 {
@@ -12,6 +12,7 @@ public class UISkillSlot : MonoBehaviour, IPointerClickHandler
 
     private Image background;
     public UnitSkillData skillData;
+    private bool isSelected = false;
 
     private void Awake()
     {
@@ -27,12 +28,18 @@ public class UISkillSlot : MonoBehaviour, IPointerClickHandler
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        SetSelected(true);
-        SkillManager.Instance.SelectSkill(this);
+        // ✅ SkillManager를 직접 호출하지 않음
+        TurnService.Instance.OnSkillSlotClicked(this);
+        SetSelected(this.isSelected);
+
     }
 
     public void SetSelected(bool isSelected)
     {
-        background.color = isSelected ? new Color(1f, 1f, 1f, 0.4f) : new Color(0f, 0f, 0f, 0.2f);
+        this.isSelected = isSelected;
+        background.color = isSelected
+            ? new Color(1f, 1f, 1f, 0.4f)
+            : new Color(0f, 0f, 0f, 0.2f);
     }
+
 }

@@ -10,13 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 001e949f75ca8034eb79fb9ea699587c, type: 3}
-  m_Name: PlayerUnitSkillData2
+  m_Name: PlayerUnitSkillData1
   m_EditorClassIdentifier: 
-  skillName: "\uC2A4\uD0AC1"
-  description: 'DMG20
+  skillName: "\uACF5\uACA9"
+  skillType: 0
+  description: 'DMG10
 
-    SP5'
-  icon: {fileID: 21300000, guid: 4ab697554e123fb46998597b30f66353, type: 3}
-  damage: 20
-  spCost: 5
-  spGain: 0
+    SP0'
+  icon: {fileID: 21300000, guid: b48aed234e790e6478f14248fe8ae096, type: 3}
+  spCost: 0
+  effect: {fileID: 11400000, guid: 70575457269096c4ca0f24da327c223f, type: 2}

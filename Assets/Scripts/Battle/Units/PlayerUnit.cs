@@ -16,6 +16,10 @@ public class PlayerUnit : BaseUnit
     public HexTile CurrentTile { get; protected set; }
     public int SkillPoint { get; private set; } = 0;
     public const int MaxSkillPoint = 100;
+    public UnitStatus Status { get; private set; } = UnitStatus.Normal;
+    public bool IsStunned() => Status == UnitStatus.Stunned;
+    public bool IsRecovered() => Status == UnitStatus.Recovered;
+    public int extraMoveRange = 0;
 
 
     /// <summary>
@@ -27,6 +31,10 @@ public class PlayerUnit : BaseUnit
         this.stats = data.stats.Clone(); // ✅ 복사본 사용!
         this.TurnInfoPrefab = data.turnIconPrefab;
         this.skills = data.skillDataList;
+        this.SkillPoint = MaxSkillPoint / 2;
+
+        PlayerInfoUI?.UpdateHPBar();
+        PlayerInfoUI?.UpdateSkillPoint(SkillPoint);
     }
 
     /// <summary>
@@ -36,8 +44,27 @@ public class PlayerUnit : BaseUnit
     {
         stats.TakeDamage(enemyDamage);
 
-        PlayerInfoUI?.UpdateHPBar(); // 체력 UI 갱신
+        if (!IsRecovered())
+        {
+            int spLoss = 10;
+            SkillPoint = Mathf.Max(0, SkillPoint - spLoss);
+            Debug.Log($"{unitName} ❌ 피격으로 SP 감소: -{spLoss} → 현재 SP: {SkillPoint}");
 
+            PlayerInfoUI?.UpdateSkillPoint(SkillPoint);
+
+            if (SkillPoint <= 0 && !IsStunned())
+            {
+                ApplyStun();
+                Debug.Log($"{unitName} ❗ SP 0으로 기절 상태 진입");
+            }
+        }
+        else
+        {
+            Debug.Log($"{unitName} 🔒 회복 상태 → SP 감소 없음");
+        }
+
+
+        PlayerInfoUI?.UpdateHPBar(); // 체력 UI 갱신
         StartCoroutine(FlashRed()); // ✅ 피해 시 깜빡임 연출
 
         if (stats.IsDead)
@@ -45,7 +72,14 @@ public class PlayerUnit : BaseUnit
             Debug.Log($"{unitName}이(가) 사망했습니다.");
             gameObject.SetActive(false);
         }
+        else if (SkillPoint <= 0 && Status != UnitStatus.Stunned)
+        {
+            ApplyStun();
+            Debug.Log($"{unitName} ❗ SP 0으로 기절 상태 진입");
+        }
+
     }
+
 
 
     /// <summary>
@@ -140,5 +174,41 @@ public class PlayerUnit : BaseUnit
         return true;
     }
 
+    public enum UnitStatus
+    {
+        Normal,
+        Stunned,
+        Recovered
+    }
 
+    public void ApplyStun()
+    {
+        Status = UnitStatus.Stunned;
+    }
+
+    public void ApplyRecovery()
+    {
+        Status = UnitStatus.Recovered;
+    }
+
+    public void RecoverStatus()
+    {
+        Status = UnitStatus.Normal;
+    }
+
+
+    public void BoostMoveRange(int amount)
+    {
+        extraMoveRange += amount;
+    }
+
+    public void ClearBoostedMoveRange()
+    {
+        extraMoveRange = 0;
+    }
+
+    public int GetMoveRange()
+    {
+        return 1 + extraMoveRange;
+    }
 }

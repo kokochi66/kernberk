@@ -17,6 +17,9 @@ namespace Battle.Core.Manager
         public UISkillSlot SelectedSkillSlot => selectedSkillSlot;
         public UnitSkillData SelectedSkillData => selectedSkillSlot?.skillData;
 
+        public event Action<UnitSkillData> OnSkillSelected;
+
+
 
 
         private void Awake()
@@ -68,17 +71,24 @@ namespace Battle.Core.Manager
             // ✅ SP 소모
             attacker.UseSkillPoint(skill.spCost);
 
-            // ✅ 데미지
-            target.ReceiveAttack(skill.damage);
+            // ✅ 스킬 효과 실행
+            var effect = skill.GetEffect();
+            if (effect != null)
+            {
+                yield return effect.Execute(attacker, target, () =>
+                {
+                    Debug.Log("[SkillManager] ✅ 스킬 효과 완료");
+                });
+            }
+            else
+            {
+                Debug.LogWarning($"[SkillManager] ⚠️ {skill.skillName} 스킬에 효과가 정의되어 있지 않음");
+            }
 
-            // ✅ SP 획득 (기본 공격 등)
-            attacker.GainSkillPoint(skill.spGain);
-
-            yield return new WaitForSeconds(0.5f); // 이펙트 딜레이
-            Debug.Log("[SkillManager] ✅ 스킬 적용 완료");
-
-            onComplete?.Invoke(); // 연출 끝난 뒤 콜백
+            yield return new WaitForSeconds(0.5f); // 마무리 딜레이
+            onComplete?.Invoke();
         }
+
 
         public void UseSkillOn(
             PlayerUnit attacker,
@@ -108,7 +118,7 @@ namespace Battle.Core.Manager
                 return;
             }
 
-            Debug.Log($"[SkillManager] {skillData.skillName} 사용됨 → 대상: {target.unitName}, 피해: {skillData.damage}");
+            Debug.Log($"[SkillManager] {skillData.skillName} 사용됨 → 대상: {target.unitName}");
 
             StartCoroutine(PlaySkillRoutine(skillData, attacker, target, onComplete));
         }
@@ -116,11 +126,16 @@ namespace Battle.Core.Manager
 
         public void SelectSkill(UISkillSlot skillSlot)
         {
-            DeselectSkill(); // 이전 선택 해제
+            DeselectSkill();
             selectedSkillSlot = skillSlot;
             skillSlot.SetSelected(true);
+
+            OnSkillSelected?.Invoke(skillSlot.skillData);
+
             Debug.Log($"[SkillManager] 스킬 선택됨: {skillSlot.skillData.skillName}");
         }
+
+
 
         public void DeselectSkill()
         {

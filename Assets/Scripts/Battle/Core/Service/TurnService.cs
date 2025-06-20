@@ -6,6 +6,7 @@ using Battle.Data;
 using Battle.Units;
 using Battle.Core.Manager;
 using Battle.UIEvents;
+using Battle.Skill;
 
 namespace Battle.Core.Service
 {
@@ -69,13 +70,19 @@ namespace Battle.Core.Service
             actionQueue.Clear();
             currentTurnNo = 1;
 
-            var actions = GenerateActionQueue();
-            var sorted = actions.OrderByDescending(a => a.effectiveAgility);
-
             foreach (Transform child in UnitManager.Instance.TurnOrderPanel)
                 Destroy(child.gameObject);
 
-            foreach (var act in sorted)
+            List<UnitActionData> actions = GenerateActionQueue()
+                .OrderByDescending(a => a.effectiveAgility)
+                .ToList();
+
+            StartCoroutine(ShowTurnIconsAndStart(actions));
+        }
+
+        private IEnumerator ShowTurnIconsAndStart(List<UnitActionData> sortedActions)
+        {
+            foreach (var act in sortedActions)
             {
                 actionQueue.Enqueue(act);
                 Debug.Log($"📥 큐에 추가: {(act.isAlly ? "아군" : "적군")} / 민첩: {act.effectiveAgility}");
@@ -89,12 +96,16 @@ namespace Battle.Core.Service
                 icon.actionData = act;
 
                 iconObj.name = $"TurnInfoIcon_{(act.isAlly ? act.playerUnit.unitName : act.enemyUnit.unitName)}";
+
+                yield return new WaitForSeconds(0.3f); // ✅ 간격 연출
             }
 
             Debug.Log($"✅ 총 {actionQueue.Count}개의 액션이 큐에 등록됨");
 
             StartCoroutine(ProcessNextAction());
         }
+
+
 
         private List<UnitActionData> GenerateActionQueue()
         {
@@ -146,9 +157,26 @@ namespace Battle.Core.Service
 
             if (currentAction.isAlly)
             {
-                UnitManager.Instance.SelectPlayer(currentAction.playerUnit);
-                TileManager.Instance.HighlightPlayerMoveRange(currentAction.playerUnit); // ✅ 추가 필요
-                SkillManager.Instance.ShowSkills(currentAction.playerUnit);
+                var unit = currentAction.playerUnit;
+
+                // ✅ 기절 상태라면 턴 스킵
+                if (unit.IsStunned())
+                {
+                    Debug.Log($"⏭️ {unit.unitName} 기절 상태로 턴 스킵");
+                    UIDescriptionPanel.Instance.Show($"{unit.unitName}은(는) 기절 상태입니다. 턴을 건너뜁니다.");
+
+                    yield return new WaitForSeconds(2f);
+
+                    UIDescriptionPanel.Instance.Clear();
+                    unit.ApplyRecovery(); // ✅ 회복 상태로 전환
+                    EndCurrentTurn();
+                    yield break;
+                }
+
+
+                UnitManager.Instance.SelectPlayer(unit);
+                TileManager.Instance.HighlightPlayerMoveRange(unit);
+                SkillManager.Instance.ShowSkills(unit);
             }
             else
             {
@@ -178,9 +206,31 @@ namespace Battle.Core.Service
         public void MoveSelectedPlayerTo(HexTile tile)
         {
             if (!currentAction.isAlly) return;
+            var unit = currentAction.playerUnit;
+
             if (!UnitManager.Instance.CanMoveTo(tile)) return;
-            currentAction.playerUnit.MoveTo(tile, () => EndCurrentTurn());
+
+            var skill = SkillManager.Instance.SelectedSkillData;
+            bool usedMoveSkill = skill != null && skill.skillType == SkillType.IncreaseMoveRange;
+
+            unit.MoveTo(tile, () =>
+            {
+                if (usedMoveSkill)
+                {
+                    if (unit.SkillPoint >= skill.spCost)
+                    {
+                        unit.UseSkillPoint(skill.spCost);
+                        unit.ClearBoostedMoveRange();
+                        SkillManager.Instance.DeselectSkill();
+
+                        Debug.Log($"🌀 {unit.unitName} 이동거리 증가 스킬 사용: SP {skill.spCost} 소모");
+                    }
+                }
+
+                EndCurrentTurn();
+            });
         }
+
 
         public void ExecutePlayerSkill()
         {
@@ -295,8 +345,37 @@ namespace Battle.Core.Service
                 return;
             }
 
-            StartNewStep();
+            // ✅ 스텝 연출 Coroutine 실행
+            StartCoroutine(HandleStepTransition());
         }
+
+        private IEnumerator HandleStepTransition()
+        {
+            yield return new WaitForSeconds(0.5f); // 턴 종료 후 잠깐 대기
+
+            UIDescriptionPanel.Instance.Show("🔁 새로운 Step을 시작합니다.");
+
+            yield return new WaitForSeconds(1f); // 안내 메시지 표시 시간
+
+            UIDescriptionPanel.Instance.Clear();
+
+            // ✅ 모든 플레이어 유닛 SP 회복
+            foreach (var unit in UnitManager.Instance.GetAlivePlayers())
+            {
+                unit.GainSkillPoint(15);
+                Debug.Log($"🌀 {unit.unitName} 스텝 종료 후 SP +15 → 현재 SP: {unit.SkillPoint}");
+
+                if (unit.IsRecovered())
+                {
+                    unit.RecoverStatus();
+                    Debug.Log($"🔄 {unit.unitName}의 회복 상태가 초기화되었습니다.");
+                }
+            }
+
+            StartNewStep(); // 스텝 본격 시작
+        }
+
+
 
         private void EndBattle(bool playerWon)
         {
@@ -309,7 +388,38 @@ namespace Battle.Core.Service
                 defeatScreen?.SetActive(true);
         }
 
+        public void OnSkillSlotClicked(UISkillSlot skillSlot)
+        {
+            var skill = skillSlot.skillData;
 
+            // ✅ 스킬이 이미 선택된 상태에서 다시 클릭해 해제하려는 경우
+            bool isCancelling = SkillManager.Instance.SelectedSkillData == skill;
+
+            if (isCancelling)
+            {
+                SkillManager.Instance.DeselectSkill();
+
+                // 이동 거리 증가 스킬이었다면 롤백
+                if (skill.skillType == SkillType.IncreaseMoveRange)
+                {
+                    currentAction.playerUnit.ClearBoostedMoveRange();
+                    TileManager.Instance.ClearAllHighlights();
+                    TileManager.Instance.HighlightPlayerMoveRange(currentAction.playerUnit);
+                    Debug.Log($"↩️ {currentAction.playerUnit.unitName} 이동거리 증가 취소됨");
+                }
+
+                return;
+            }
+
+            // ✅ 새로 선택하는 경우
+            SkillManager.Instance.SelectSkill(skillSlot);
+
+            if (skill.skillType == SkillType.IncreaseMoveRange && skill.GetEffect() is ISkillEffect effect)
+            {
+                var user = currentAction.playerUnit;
+                StartCoroutine(effect.Execute(user, null, () => { }));
+            }
+        }
 
     }
 

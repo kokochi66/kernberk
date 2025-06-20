@@ -118,7 +118,7 @@ namespace Battle.Core.Manager
                 // ✅ Player UI 생성 및 연결
                 GameObject uiObj = Instantiate(unitData.infoUIPrefab, PlayerInfoPanel);
                 UIPlayerInfo infoUI = uiObj.GetComponent<UIPlayerInfo>();
-                infoUI.Init(unit.stats);
+                infoUI.Init(unit.stats, unit.SkillPoint, PlayerUnit.MaxSkillPoint);
                 unit.PlayerInfoUI = infoUI;
 
                 // UI 위치 배치 (예시 위치 기준)

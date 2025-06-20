@@ -1,18 +1,38 @@
 using UnityEngine;
+using System.Collections;
+using Battle.Skill;
 
 namespace Battle.Units
 {
-    [CreateAssetMenu(fileName = "NewUnitSkillData", menuName = "Battle/Unit Skill Data")]
     public class UnitSkillData : ScriptableObject
     {
-        [Header("기본 정보")]
         public string skillName;
+        public SkillType skillType = SkillType.Attack;
         [TextArea] public string description;
         public Sprite icon;
 
-        [Header("전투 수치")]
-        public int damage;
-        public int spCost;     // 스킬 사용 시 소비되는 SP
-        public int spGain;     // 스킬 사용 시 회복되는 SP
+        public int spCost;
+
+        [Header("스킬 효과")]
+        public ScriptableObject effect; // ISkillEffect 구현체
+        public ISkillEffect GetEffect() => effect as ISkillEffect;
+
+
     }
+
+
+    // // 이동거리 증가 스킬
+    // [CreateAssetMenu(menuName = "Battle/Skill Effects/IncreaseMoveRange")]
+    // public class IncreaseMoveRangeEffect : ScriptableObject, ISkillEffect
+    // {
+    //     public int rangeBoost;
+    //     public float duration;
+
+    //     public void Execute(PlayerUnit user, EnemyUnit target, System.Action onComplete)
+    //     {
+    //         user.BoostMoveRange(rangeBoost, duration); // 이건 PlayerUnit에서 처리
+    //         onComplete?.Invoke();
+    //     }
+    // }
+
 }

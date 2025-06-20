@@ -56,26 +56,20 @@ namespace Battle.Core.Manager
         }
 
 
-
-        /// <summary>
-        /// 이동 범위 하이라이트 (초록색)
-        /// </summary>
         public void HighlightPlayerMoveRange(PlayerUnit unit)
         {
             if (unit == null || unit.CurrentTile == null)
-            {
-                Debug.LogWarning("[TileManager] 유닛 또는 현재 타일 정보가 없습니다.");
                 return;
-            }
 
             HexTile origin = unit.CurrentTile;
-            List<HexTile> allTiles = GetAllTiles();
+            int moveRange = unit.GetMoveRange();
+
             List<HexTile> moveableTiles = new();
 
             foreach (var tile in allTiles)
             {
                 if (tile == origin) continue;
-                if (!IsAdjacent(origin, tile)) continue;
+                if (!IsWithinRange(origin, tile, moveRange)) continue;
                 if (tile.IsOccupied()) continue;
 
                 tile.SetState(HexTileState.Movable);
@@ -85,27 +79,37 @@ namespace Battle.Core.Manager
             PushHighlightLayer(moveableTiles, Color.green);
         }
 
+        private bool IsWithinRange(HexTile a, HexTile b, int range)
+        {
+            return HexDistance(a, b) <= range;
+        }
+
+
+        private int HexDistance(HexTile a, HexTile b)
+        {
+            var aCube = OffsetToCube(a.tileX, a.tileY);
+            var bCube = OffsetToCube(b.tileX, b.tileY);
+
+            return Mathf.Max(
+                Mathf.Abs(aCube.x - bCube.x),
+                Mathf.Abs(aCube.y - bCube.y),
+                Mathf.Abs(aCube.z - bCube.z)
+            );
+        }
+
+        private (int x, int y, int z) OffsetToCube(int col, int row)
+        {
+            int x = col;
+            int z = row - (col % 2 == 0 ? col / 2 : (col + 1) / 2);
+            int y = -x - z;
+            return (x, y, z);
+        }
 
 
         private bool IsAdjacent(HexTile from, HexTile to)
         {
-            int dx = to.tileX - from.tileX;
-            int dy = to.tileY - from.tileY;
-
-            // 짝수열과 홀수열에 따라 인접한 타일의 상대 좌표가 다름
-            (int dx, int dy)[] offsets = (from.tileX % 2 == 0)
-                ? new (int, int)[] { (-1, 0), (-1, 1), (0, -1), (0, 1), (1, 0), (1, 1) }  // 짝수 열
-                : new (int, int)[] { (-1, -1), (-1, 0), (0, -1), (0, 1), (1, -1), (1, 0) }; // 홀수 열
-
-            foreach (var offset in offsets)
-            {
-                if (dx == offset.dx && dy == offset.dy)
-                    return true;
-            }
-
-            return false;
+            return HexDistance(from, to) == 1;
         }
-
 
 
         /// <summary>

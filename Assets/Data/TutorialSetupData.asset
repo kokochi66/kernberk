@@ -14,9 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerUnitDataList:
   - {fileID: 11400000, guid: a341d7e2821db8045ba0d3c83b565b09, type: 2}
-  - {fileID: 11400000, guid: a341d7e2821db8045ba0d3c83b565b09, type: 2}
-  - {fileID: 11400000, guid: a341d7e2821db8045ba0d3c83b565b09, type: 2}
-  - {fileID: 11400000, guid: a341d7e2821db8045ba0d3c83b565b09, type: 2}
   enemyUnitDataList:
   - {fileID: 11400000, guid: 25b5cacb9ac942d4f874c068de594135, type: 2}
   PlayerSpawnPositions:
