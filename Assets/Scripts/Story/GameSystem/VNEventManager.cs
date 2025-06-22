@@ -6,6 +6,7 @@ using TMPro;
 using System;
 using UnityEngine.UI;
 using System.IO;
+using Story.Utils;
 
 namespace Story.GameSystem
 {
@@ -47,6 +48,7 @@ namespace Story.GameSystem
             sfxPlayer.volume = 0.7f; // 효과음도 너무 크지 않게
             string fullPath = Path.Combine(Application.streamingAssetsPath, excelFileName);
             events = VNEventParser.LoadEventsFromExcelPath(fullPath);
+            currentEventIndex = StorySceneLoadData.startIndex;
             StartCoroutine(PlayNextEvent());
         }
 
@@ -79,7 +81,8 @@ namespace Story.GameSystem
 
         IEnumerator PlayNextEvent()
         {
-            if (!isNextEventsPlaying) {
+            if (!isNextEventsPlaying)
+            {
                 isNextEventsPlaying = true;
                 if (currentEventIndex >= events.Count)
                 {
@@ -253,8 +256,22 @@ namespace Story.GameSystem
 
                 nextButton.SetActive(true);
                 isNextEventsPlaying = false;
+
+                // 현재 이벤트 처리 끝나고 나서 nextScene이 지정되어 있다면, 씬 전환
+                if (!string.IsNullOrEmpty(e.nextScene))
+                {
+                    Debug.Log($"[VN] 씬 전환 요청: {e.nextScene}");
+
+                    // ✅ 현재 인덱스를 저장해둠 (전투 끝나고 이어서 재생하기 위함)
+                    StorySceneLoadData.startIndex = currentEventIndex;
+
+                    yield return StartCoroutine(FadeOutScreen());
+                    UnityEngine.SceneManagement.SceneManager.LoadScene(e.nextScene);
+                    yield break;
+                }
+
             }
-            
+
         }
 
         IEnumerator TypeText(string fullText)

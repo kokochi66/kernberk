@@ -25,3 +25,6 @@ MonoBehaviour:
   icon: {fileID: 21300000, guid: 9def4fb1926462940bf486c453933a6c, type: 3}
   infoUIPrefab: {fileID: 1747101503102441046, guid: 3c370e64f835ccc4986c2f12ead24c66, type: 3}
   turnIconPrefab: {fileID: 6338845096965369474, guid: 4bafe1b026c5b43459e86ecfc957d733, type: 3}
+  attackPatterns:
+  - {fileID: 11400000, guid: d066f844f5302f843a98f214d89705bf, type: 2}
+  - {fileID: 11400000, guid: 5239f90c85937474d8561af862ad6527, type: 2}

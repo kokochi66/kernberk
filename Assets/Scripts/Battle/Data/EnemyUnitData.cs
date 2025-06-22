@@ -20,5 +20,10 @@ namespace Battle.Data
 
         public GameObject infoUIPrefab;
         public GameObject turnIconPrefab;
+
+        [Header("공격 패턴 목록")]
+        public List<EnemyAttackPattern> attackPatterns;
+
+
     }
 }

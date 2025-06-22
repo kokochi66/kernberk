@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 66fcfaefee5a3be45a5d9f4b8789dbfc, type: 3}
   m_Name: SpecialMove
   m_EditorClassIdentifier: 
-  damage: 50
+  damage: 200
   spGain: 10

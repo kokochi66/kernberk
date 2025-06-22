@@ -20,6 +20,8 @@ namespace Story.Core
         public string expression;               // 표정 (스프라이트 이름 등)
 
         public SceneFadeType sceneFadeType;     // 장면 전체 페이드 처리
+        public string nextScene; // 씬 전환이 필요할 경우 전환할 씬 이름
+
         public string sfx;                      // 효과음 이름
         public string bgm;                      // 배경음악 이름
         public float bgmVolume;

@@ -15,6 +15,8 @@ public class EnemyUnit : BaseUnit
     public SpriteRenderer SpriteRenderer { get; private set; }
     public string AttackPattern { get; private set; }
     public bool isClicked = false;
+    public List<EnemyAttackPattern> AttackPatterns { get; private set; }
+    private int turnCounter = 0;
 
     public void Init(EnemyUnitData data)
     {
@@ -22,6 +24,7 @@ public class EnemyUnit : BaseUnit
         this.stats = data.stats.Clone();
         this.AttackPattern = data.attackPattern;
         this.TurnInfoPrefab = data.turnIconPrefab;
+        this.AttackPatterns = data.attackPatterns;
 
         SpriteRenderer = GetComponent<SpriteRenderer>();
         SelectionOutline = transform.Find("EnemyOutlineObject")?.gameObject;
@@ -77,4 +80,34 @@ public class EnemyUnit : BaseUnit
         if (!TurnService.Instance.currentAction.isAlly) return;
         UnitManager.Instance.SelectEnemy(this);
     }
+
+    public void OnTurnStart()
+    {
+        turnCounter++;
+    }
+
+    public EnemyAttackPattern GetCurrentPattern(EnemyPatternContext context)
+    {
+        List<EnemyAttackPattern> validPatterns = new();
+
+        foreach (var pattern in AttackPatterns)
+        {
+            bool isActive = pattern.ShouldActivate(this, context);
+            Debug.Log($"[EnemyUnit] ▶ 패턴 검사: {pattern.patternName} / 조건 결과: {isActive}");
+
+            if (isActive)
+                validPatterns.Add(pattern);
+        }
+
+        if (validPatterns.Count > 0)
+        {
+            var selected = validPatterns[Random.Range(0, validPatterns.Count)];
+            Debug.Log($"[EnemyUnit] 🎯 랜덤 선택된 패턴: {selected.patternName}");
+            return selected;
+        }
+
+        Debug.Log("[EnemyUnit] ❌ 사용 가능한 패턴 없음");
+        return null;
+    }
+
 }

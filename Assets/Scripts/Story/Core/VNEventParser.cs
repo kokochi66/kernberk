@@ -47,7 +47,8 @@ namespace Story.Core
                         sfx = GetCell(row, columnIndexMap, "sfx"),
                         bgm = GetCell(row, columnIndexMap, "bgm"),
                         bgmVolume = float.TryParse(GetCell(row, columnIndexMap, "bgmVolume"), out float volume) ? volume : 0,
-                        bgImage = GetCell(row, columnIndexMap, "bgImage")
+                        bgImage = GetCell(row, columnIndexMap, "bgImage"),
+                        nextScene = GetCell(row, columnIndexMap, "nextScene"),
                     };
 
                     events.Add(e);

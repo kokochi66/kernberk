@@ -7,6 +7,7 @@ using Battle.Units;
 using Battle.Core.Manager;
 using Battle.UIEvents;
 using Battle.Skill;
+using Story.Utils;
 
 namespace Battle.Core.Service
 {
@@ -28,6 +29,7 @@ namespace Battle.Core.Service
         private Queue<UnitActionData> actionQueue = new Queue<UnitActionData>();
         public UnitActionData currentAction;
         private int currentTurnNo = 0;
+        private int currentStepNo = 0;
         private UnitActionData selectedAction;
 
 
@@ -58,6 +60,7 @@ namespace Battle.Core.Service
             List<HexTile> tiles = TileManager.Instance.GetAllTiles();
             UnitManager.Instance.InitializeUnits(setupData, tiles);
             isBattleActive = true;
+            AudioManager.Instance.PlayBGM("stairs", 0.5f);
             Debug.Log("[TurnService] 전투 초기화 완료");
         }
 
@@ -68,6 +71,7 @@ namespace Battle.Core.Service
             Debug.Log("🔁 [TurnService] 새로운 스텝 시작");
 
             actionQueue.Clear();
+            currentStepNo++;
             currentTurnNo = 1;
 
             foreach (Transform child in UnitManager.Instance.TurnOrderPanel)
@@ -123,13 +127,25 @@ namespace Battle.Core.Service
             {
                 if (!e.stats.IsDead)
                 {
-                    List<HexTile> attackTiles = allTiles
-                        .Where(tile => tile.tileX == 1 || tile.tileX == 2)
-                        .ToList();
+                    EnemyPatternContext context = new EnemyPatternContext
+                    {
+                        turnCount = this.currentStepNo,
+                        playerUnits = UnitManager.Instance.GetPlayerUnits(),
+                        allTiles = TileManager.Instance.GetAllTiles()
+                    };
 
-                    actions.Add(new UnitActionData(e, e.stats.Agility, false, attackTiles));
-
-                    Debug.Log($"[TurnService] 적 액션 등록: {e.unitName} / 타일 수: {attackTiles.Count}");
+                    EnemyAttackPattern pattern = e.GetCurrentPattern(context);
+                    if (pattern != null)
+                    {
+                        var resolvedTiles = pattern.ResolveTiles(context); // ✅ 타일 계산 실행
+                        actions.Add(new UnitActionData(
+                            e,
+                            e.stats.Agility,
+                            false,
+                            pattern,
+                            resolvedTiles // ✅ 결과 전달
+                        ));
+                    }
                 }
             }
 
@@ -274,7 +290,7 @@ namespace Battle.Core.Service
 
         private IEnumerator EnemyAttackRoutine(UnitActionData action)
         {
-            var attackTiles = action.attackTiles;
+            var attackTiles = action.TargetTiles;
 
             foreach (var tile in attackTiles)
                 tile.SetState(HexTileState.EnemyAttackPreview);
@@ -303,10 +319,10 @@ namespace Battle.Core.Service
             Debug.Log($"[TurnService] 액션 선택됨: {(action.isAlly ? "아군" : "적군")} / 민첩 {action.effectiveAgility}");
 
             // ✅ 적일 경우 공격 범위 표시
-            if (!action.isAlly && action.attackTiles != null)
+            if (!action.isAlly && action.TargetTiles != null)
             {
-                TileManager.Instance.HighlightEnemyAttackPreview(action.attackTiles);
-                Debug.Log($"[TurnService] 적 공격 범위 하이라이트 표시 (타일 {action.attackTiles.Count}개)");
+                TileManager.Instance.HighlightEnemyAttackPreview(action.TargetTiles);
+                Debug.Log($"[TurnService] 적 공격 범위 하이라이트 표시 (타일 {action.TargetTiles.Count}개)");
             }
         }
 
@@ -317,7 +333,7 @@ namespace Battle.Core.Service
             {
                 Debug.Log("[TurnService] 액션 선택 해제");
 
-                if (!selectedAction.isAlly && selectedAction.attackTiles != null)
+                if (!selectedAction.isAlly && selectedAction.TargetTiles != null)
                 {
                     TileManager.Instance.PopHighlightLayer(); // ✅ 공격 범위 제거
                 }
@@ -381,12 +397,35 @@ namespace Battle.Core.Service
         {
             isBattleActive = false;
             Debug.Log(playerWon ? "🎉 승리!" : "💀 패배!");
+            AudioManager.Instance.StopBGM();
 
             if (playerWon)
+            {
                 victoryScreen?.SetActive(true);
+
+                // ✅ StoryScene 복귀 설정
+                StartCoroutine(ReturnToStorySceneAfterDelay());
+            }
             else
+            {
                 defeatScreen?.SetActive(true);
+            }
         }
+
+        private IEnumerator ReturnToStorySceneAfterDelay()
+        {
+            Debug.Log("[TurnService] 🕓 StoryScene 복귀를 위한 대기 시작");
+            yield return new WaitForSeconds(2.5f);
+            Debug.Log("[TurnService] ✅ 대기 완료 - StoryScene 씬 로드 시도");
+
+            // 씬 로드
+            UnityEngine.SceneManagement.SceneManager.LoadScene("StoryScene");
+
+            // 혹시 로드 실패를 대비한 로그
+            Debug.Log("[TurnService] 🟡 LoadScene 호출 완료 (에러가 없다면 씬 전환 중일 것)");
+        }
+
+
 
         public void OnSkillSlotClicked(UISkillSlot skillSlot)
         {
