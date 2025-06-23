@@ -77,9 +77,11 @@ public class EnemyUnit : BaseUnit
 
     private void OnMouseDown()
     {
-        if (!TurnService.Instance.currentAction.isAlly) return;
+        if (!TurnService.Instance.IsPlayerTurnActive) return;
+
         UnitManager.Instance.SelectEnemy(this);
     }
+
 
     public void OnTurnStart()
     {

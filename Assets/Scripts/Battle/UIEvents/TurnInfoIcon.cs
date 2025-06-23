@@ -11,6 +11,8 @@ namespace Battle.UIEvents
 
         public void OnPointerClick(PointerEventData eventData)
         {
+            if (!TurnService.Instance.IsPlayerTurnActive) return; // ✅
+
             if (!actionData.isAlly)
             {
                 if (isClicked)
@@ -25,6 +27,7 @@ namespace Battle.UIEvents
                 }
             }
         }
+
 
     }
 }

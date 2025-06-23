@@ -28,11 +28,12 @@ public class UISkillSlot : MonoBehaviour, IPointerClickHandler
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        // ✅ SkillManager를 직접 호출하지 않음
+        if (!TurnService.Instance.IsPlayerTurnActive) return; // ✅ 턴이 아닐 경우 무시
+
         TurnService.Instance.OnSkillSlotClicked(this);
         SetSelected(this.isSelected);
-
     }
+
 
     public void SetSelected(bool isSelected)
     {

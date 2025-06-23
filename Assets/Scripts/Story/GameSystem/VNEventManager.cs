@@ -37,6 +37,8 @@ namespace Story.GameSystem
         private bool isNextEventsPlaying = false;
         private Coroutine typingCoroutine;
         private string currentFullText;
+        private bool isSkipPressed = false;
+
 
 
         public static string excelFileName = "kernberk_sheet.xlsx";
@@ -54,6 +56,8 @@ namespace Story.GameSystem
 
         void Update()
         {
+            isSkipPressed = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
+
             // 마우스 왼쪽 클릭 or 엔터키 or 스페이스키 입력 감지
             if (Input.GetMouseButtonDown(0) || Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.Space))
             {
@@ -93,9 +97,6 @@ namespace Story.GameSystem
                 VNEvent e = events[currentEventIndex];
                 Debug.Log($"[VN] 이벤트 {currentEventIndex} 실행 - Scene: {e.sceneName}, 대사자: {e.characterName}");
                 currentEventIndex++;
-
-                yield return new WaitForSeconds(e.delayBefore);
-                Debug.Log($"[VN] delayBefore: {e.delayBefore}초 대기 완료");
 
                 // 배경 이미지 설정
                 if (!string.IsNullOrEmpty(e.bgImage))
@@ -270,7 +271,21 @@ namespace Story.GameSystem
                     yield break;
                 }
 
+                // Ctrl 누르고 있으면 자동으로 다음 이벤트 재생
+                if (isSkipPressed)
+                {
+                    yield return new WaitForSeconds(0.01f);
+                    OnNextClicked();
+                }
+                else
+                {
+                    yield return new WaitForSeconds(e.delayBefore);
+                    Debug.Log($"[VN] delayBefore: {e.delayBefore}초 대기 완료");
+                }
             }
+
+
+
 
         }
 
@@ -281,18 +296,28 @@ namespace Story.GameSystem
 
             for (int i = 0; i < fullText.Length; i++)
             {
-                if (!isTyping) // 스킵 요청되면 중단
+                if (!isTyping) // 수동 스킵 요청
                 {
                     dialogueText.text = fullText;
                     yield break;
                 }
 
                 dialogueText.text += fullText[i];
-                yield return new WaitForSeconds(0.03f);
+
+                // ✅ Ctrl 누르면 바로 다음 글자 딜레이 없이 진행
+                if (isSkipPressed)
+                {
+                    yield return null; // 한 프레임만 대기
+                }
+                else
+                {
+                    yield return new WaitForSeconds(0.03f); // 일반 속도
+                }
             }
 
             isTyping = false;
         }
+
 
 
         IEnumerator FadeInScreen()

@@ -460,6 +460,24 @@ namespace Battle.Core.Service
             }
         }
 
+        public bool IsPlayerTurnActive
+        {
+            get
+            {
+                return isBattleActive
+                    && currentAction != null
+                    && currentAction.isAlly;
+            }
+        }
+
+        public void SelectEnemyAndShowRange(EnemyUnit enemy, List<HexTile> attackTiles)
+        {
+            UnitManager.Instance.SelectEnemy(enemy);
+            TileManager.Instance.ClearAllHighlights(); // 기존 하이라이트 제거
+            TileManager.Instance.HighlightEnemyAttackPreview(attackTiles);
+        }
+
+
     }
 
 }
